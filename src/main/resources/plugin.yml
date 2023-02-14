@@ -1,0 +1,9 @@
+name: CraftyCrates
+version: '${version}'
+main: com.teenkung.craftycrates.CraftyCrates
+api-version: 1.19
+prefix: CraftyCrates
+depend: [ MMOItems ]
+softdepend: [ PlaceholderAPI, NBTAPI ]
+authors: [ Teenkung123 ]
+description: Genshin Impact Like -  Gacha System With Pity, Garuntee, and More!

@@ -1,0 +1,29 @@
+banner_id: TEST
+
+uprate:
+  enabled: true
+  minimum_roll: 50
+  additional_rate: 2
+  uprate_pool: S6
+
+rarities:
+  S6:
+    display_wording: '&6???????'
+    chance: 2
+    pool: ExamplePool.yml
+  S5:
+    display_wording: '&e???????'
+    chance: 8
+    pool: ExamplePool.yml
+  S4:
+    display_wording: '&2???????'
+    chance: 15
+    pool: ExamplePool.yml
+  S3:
+    display_wording: '&b???????'
+    chance: 25
+    pool: ExamplePool.yml
+  S2:
+    display_wording: '&4???????'
+    chance: 50
+    pool: ExamplePool.yml

@@ -1,0 +1,13 @@
+#====================================
+#
+# ONLY SUPPORT .YML FILE NOT .YAML
+#
+#=====================================
+
+Banners:
+  - ExampleBanner.yml
+
+Pools:
+  - ExamplePool.yml
+
+
