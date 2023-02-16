@@ -30,15 +30,17 @@ public class PullStorage {
     public ArrayList<String> getCommands() { return commands; }
     public Integer getWeight() { return weight; }
 
-    public ArrayList<String> generateItemStack(Player player, Boolean executecommand) {
-        ArrayList<String> items = new ArrayList<>();
+    public ArrayList<ItemPair> generateItemStack(Player player, Boolean executecommand) {
+        ArrayList<ItemPair> items = new ArrayList<>();
         for (int i = 0 ; i < amount ; i++) {
-            MMOItems.plugin.getItem(category, id);
+            ItemStack stack = MMOItems.plugin.getItem(category, id);
+            ItemPair pair;
             if (executecommand) {
-                for (String command : commands) {
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
-                }
+                pair = new ItemPair(stack, commands);
+            } else {
+                pair = new ItemPair(stack, new ArrayList<>());
             }
+            items.add(pair);
         }
         return items;
     }

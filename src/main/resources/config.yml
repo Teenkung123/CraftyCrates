@@ -10,4 +10,10 @@ Banners:
 Pools:
   - ExamplePool.yml
 
+MySQL:
+  Host: localhost
+  Port: 3306
+  User: root
+  Password: CraftyCrates
+  Database: CraftyCrates
 

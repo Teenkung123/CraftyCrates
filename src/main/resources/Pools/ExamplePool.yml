@@ -1,8 +1,8 @@
-pool_id: Banner_SwordOfFire_uprate
+pool_id: ExamplePool
 
 uprate:
   uprate_item: Object_01
-  guarantee: 1
+  garantee: 1
 
 list:
   Object_01:

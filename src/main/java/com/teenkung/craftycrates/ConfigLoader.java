@@ -27,7 +27,7 @@ public class ConfigLoader {
     private static final HashMap<String, Integer> uprateMinRolls = new HashMap<>();
     private static final HashMap<String, Double> uprateAddtionalRate = new HashMap();
     private static final HashMap<String, String> upratePool = new HashMap<>();
-    private static final HashMap<String, ArrayList> rarities = new HashMap<>();
+    private static final HashMap<String, ArrayList<String>> rarities = new HashMap<>();
     private static final HashMap<String, HashMap<String, RarityStorage>> rarityStorage = new HashMap<>();
 
     //Pull configuration
@@ -37,6 +37,16 @@ public class ConfigLoader {
     private static final HashMap<String, Integer> pullGuarantee = new HashMap<>();
     private static final HashMap<String, ArrayList<String>> pullsItems = new HashMap<>();
     private static final HashMap<String, HashMap<String, PullStorage>> pullStorage = new HashMap<>();
+
+    public static HashMap<String, Integer> getRarities(String ID) {
+        String filename = bannerIDs.get(ID);
+        HashMap<String, RarityStorage> storage = rarityStorage.getOrDefault(filename, new HashMap<>());
+        HashMap<String, Integer> result = new HashMap<>();
+        for (String id : storage.keySet()) {
+            result.put(id, storage.get(id).getChance());
+        }
+        return result;
+    }
 
 
 
@@ -104,20 +114,20 @@ public class ConfigLoader {
                     upratePool.put(filename, config.getString("uprate.uprate_pool", ""));
 
                     ArrayList<String> l = new ArrayList<>();
+                    HashMap<String, RarityStorage> storage = new HashMap<>();
                     for (String key : section.getKeys(false)) {
                         if (PoolList.contains(config.getString("rarities."+key+".pool", "").replaceAll(".yml", ""))) {
                             l.add(key);
-                            HashMap<String, RarityStorage> storage = new HashMap<>();
                             storage.put(key, new RarityStorage(
                                     config.getString("rarities."+key+".display", ""),
-                                    config.getDouble("rarities."+key+".chance", 0.00),
+                                    config.getInt("rarities."+key+".chance", 0),
                                     config.getString("rarities."+key+".pool", "").replaceAll(".yml", "")
                             ));
-                            rarityStorage.put(filename, storage);
                         } else {
                             System.out.println(colorize("&6Could not find pool named " + config.getString("rarities."+key+".pool")));
                         }
                     }
+                    rarityStorage.put(filename, storage);
                     rarities.put(filename, l);
 
                 } else {
