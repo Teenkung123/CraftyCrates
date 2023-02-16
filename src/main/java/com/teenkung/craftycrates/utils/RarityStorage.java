@@ -11,4 +11,8 @@ public class RarityStorage {
         this.pool = pool;
     }
 
+    public String getDisplay() { return display; }
+    public Double getChance() { return chance; }
+    public String getPool() { return pool; }
+
 }

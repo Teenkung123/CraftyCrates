@@ -1,0 +1,48 @@
+pool_id: Banner_SwordOfFire_uprate
+
+uprate:
+  uprate_item: Object_01
+  guarantee: 1
+
+list:
+  Object_01:
+    Category: 'SWORD'
+    ID: 'WOODEN_SWORD'
+    Amount: 1
+    Command: []
+    Weight: 10
+
+  Object_02:
+    Category: 'SWORD'
+    ID: 'WOODEN_SWORD'
+    Amount: 1
+    Command: []
+    Weight: 3
+
+  Object_03:
+    Category: 'SWORD'
+    ID: 'WOODEN_SWORD'
+    Amount: 1
+    Command: []
+    Weight: 3
+
+  Object_04:
+    Category: 'SWORD'
+    ID: 'WOODEN_SWORD'
+    Amount: 1
+    Command: []
+    Weight: 3
+
+  Object_05:
+    Category: 'SWORD'
+    ID: 'WOODEN_SWORD'
+    Amount: 1
+    Command: []
+    Weight: 3
+
+  Object_06:
+    Category: 'SWORD'
+    ID: 'WOODEN_SWORD'
+    Amount: 1
+    Command: []
+    Weight: 3

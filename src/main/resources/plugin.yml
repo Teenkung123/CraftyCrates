@@ -6,4 +6,9 @@ prefix: CraftyCrates
 depend: [ MMOItems ]
 softdepend: [ PlaceholderAPI, NBTAPI ]
 authors: [ Teenkung123 ]
-description: Genshin Impact Like -  Gacha System With Pity, Garuntee, and More!
+description: Genshin Impact Like -  Gacha System With Pity, Guarantee, and More!
+commands:
+  craftycrates:
+    aliases: cc
+    permission: craftycrates.use
+    permission-message: "You do not have permission to execute this command."

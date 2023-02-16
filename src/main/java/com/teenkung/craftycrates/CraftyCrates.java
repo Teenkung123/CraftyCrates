@@ -1,7 +1,10 @@
 package com.teenkung.craftycrates;
 
 import com.iridium.iridiumcolorapi.IridiumColorAPI;
+import com.teenkung.craftycrates.commands.CommandHandler;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Objects;
 
 public final class CraftyCrates extends JavaPlugin {
 
@@ -10,6 +13,8 @@ public final class CraftyCrates extends JavaPlugin {
     public void onEnable() {
         Instance = this;
         ConfigLoader.loadConfig();
+        Objects.requireNonNull(getCommand("craftycrates")).setExecutor(new CommandHandler());
+
     }
 
     @Override
