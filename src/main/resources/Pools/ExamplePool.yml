@@ -1,9 +1,5 @@
 pool_id: ExamplePool
 
-uprate:
-  uprate_item: Object_01
-  garantee: 1
-
 list:
   Object_01:
     Category: 'SWORD'

@@ -1,7 +1,7 @@
 package com.teenkung.craftycrates;
 
-import com.teenkung.craftycrates.utils.PullStorage;
-import com.teenkung.craftycrates.utils.RarityStorage;
+import com.teenkung.craftycrates.utils.storage.PullStorage;
+import com.teenkung.craftycrates.utils.storage.RarityStorage;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -24,7 +24,7 @@ public class ConfigLoader {
     private static final HashMap<String, String> bannerIDs = new HashMap<>();
     private static final HashMap<String, Boolean> uprateEnable = new HashMap<>();
     private static final HashMap<String, Integer> uprateMinRolls = new HashMap<>();
-    private static final HashMap<String, Integer> uprateAddtionalRate = new HashMap();
+    private static final HashMap<String, Float> uprateAddtionalRate = new HashMap();
     private static final HashMap<String, String> upratePool = new HashMap<>();
     private static final HashMap<String, ArrayList<String>> rarities = new HashMap<>();
     private static final HashMap<String, HashMap<String, RarityStorage>> rarityStorage = new HashMap<>();
@@ -32,14 +32,12 @@ public class ConfigLoader {
     //Pull configuration
 
     private static final ArrayList<String> PullsIdList = new ArrayList<>();
-    private static final HashMap<String, String> pullUprateItem = new HashMap<>();
-    private static final HashMap<String, Integer> pullGuarantee = new HashMap<>();
     private static final HashMap<String, ArrayList<String>> pullsItems = new HashMap<>();
     private static final HashMap<String, HashMap<String, PullStorage>> pullStorage = new HashMap<>();
 
-    public static HashMap<String, Integer> getRarities(String ID) {
+    public static HashMap<String, Float> getRarities(String ID) {
         HashMap<String, RarityStorage> storage = rarityStorage.getOrDefault(ID, new HashMap<>());
-        HashMap<String, Integer> result = new HashMap<>();
+        HashMap<String, Float> result = new HashMap<>();
         for (String id : storage.keySet()) {
             result.put(id, storage.get(id).chance());
         }
@@ -50,11 +48,11 @@ public class ConfigLoader {
         return uprateEnable.getOrDefault(banner, false);
     }
 
-    public static Integer getUprateAdditionalRate(String banner) {
-        return uprateAddtionalRate.getOrDefault(banner, 0);
+    public static Float getUprateAdditionalRate(String banner) {
+        return uprateAddtionalRate.getOrDefault(banner, 0F);
     }
     public static Integer getUprateMinimumRoll(String banner) {
-        return uprateAddtionalRate.getOrDefault(banner, 1000000);
+        return uprateMinRolls.getOrDefault(banner, 1000000);
     }
 
 
@@ -77,8 +75,6 @@ public class ConfigLoader {
                     PoolList.add(filename);
                     Pools.put(filename, config);
                     PullsIdList.add(config.getString("pool_id"));
-                    pullUprateItem.put(filename, config.getString("uprate.uprate_item", ""));
-                    pullGuarantee.put(filename, config.getInt("uprate.guarantee", 1000000));
                     pullsItems.put(filename, new ArrayList<>(section.getKeys(false)));
                     for (String key : section.getKeys(false)) {
                         HashMap<String, PullStorage> l = new HashMap<>();
@@ -121,7 +117,7 @@ public class ConfigLoader {
                     bannerIDs.put(id, filename);
                     uprateEnable.put(id, config.getBoolean("uprate.enabled", false));
                     uprateMinRolls.put(id, config.getInt("uprate.minimum_roll", 90));
-                    uprateAddtionalRate.put(id, config.getInt("uprate.additional_rate", 2));
+                    uprateAddtionalRate.put(id,  Double.valueOf(config.getDouble("uprate.additional_rate", 2D)).floatValue());
                     upratePool.put(id, config.getString("uprate.uprate_pool", ""));
 
                     ArrayList<String> l = new ArrayList<>();
@@ -131,7 +127,7 @@ public class ConfigLoader {
                             l.add(key);
                             storage.put(key, new RarityStorage(
                                     config.getString("rarities."+key+".display", ""),
-                                    config.getInt("rarities."+key+".chance", 0),
+                                    Double.valueOf(config.getDouble("rarities."+key+".chance", 0)).floatValue(),
                                     config.getString("rarities."+key+".pool", "").replaceAll(".yml", "")
                             ));
                         } else {

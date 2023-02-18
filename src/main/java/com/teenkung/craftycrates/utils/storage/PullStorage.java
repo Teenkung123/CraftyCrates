@@ -1,8 +1,6 @@
-package com.teenkung.craftycrates.utils;
+package com.teenkung.craftycrates.utils.storage;
 
 import net.Indyuce.mmoitems.MMOItems;
-import net.Indyuce.mmoitems.manager.ItemManager;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 

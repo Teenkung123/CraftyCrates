@@ -1,5 +1,6 @@
 package com.teenkung.craftycrates.utils;
 
+import com.teenkung.craftycrates.utils.storage.ItemPair;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;

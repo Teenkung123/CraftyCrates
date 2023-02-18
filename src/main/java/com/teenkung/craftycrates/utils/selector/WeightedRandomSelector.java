@@ -1,4 +1,4 @@
-package com.teenkung.craftycrates.utils;
+package com.teenkung.craftycrates.utils.selector;
 
 import java.util.HashMap;
 import java.util.Map;

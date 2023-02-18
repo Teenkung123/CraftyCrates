@@ -49,25 +49,27 @@ public class PlayerDataManager {
                 } catch (SQLException e) {
                     // Handle any errors that occur during the database operations
                     System.out.println(colorize("&4Cannot load Data from Player " + player.getName()));
-                    player.kickPlayer(colorize("&4Something went wrong! Please reconnect in a few seconds"));
+                    synchronized (CraftyCrates.getInstance()) {
+                        player.kickPlayer(colorize("&4Something went wrong! Please reconnect in a few seconds"));
+                    }
                 }
             }
         });
     }
 
-    public Integer getCurrentRoll(String banner) {
+    public int getCurrentRoll(String banner) {
         return currentRolls.getOrDefault(banner, 0);
     }
 
-    public Integer getTotalRoll(String banner) {
+    public int getTotalRoll(String banner) {
         return totalRolls.getOrDefault(banner, 0);
     }
 
-    public Integer getAdditionalRate(String banner) {
+    public float getAdditionalRate(String banner) {
         if (ConfigLoader.getBannerIdsList().contains(banner)) {
             if (ConfigLoader.getUprateEnabled(banner)) {
                 if (currentRolls.getOrDefault(banner, 0) <= ConfigLoader.getUprateMinimumRoll(banner)) {
-                    int increase = ConfigLoader.getUprateAdditionalRate(banner) * ((currentRolls.getOrDefault(banner, 0) - ConfigLoader.getUprateMinimumRoll(banner)));
+                    float increase = ConfigLoader.getUprateAdditionalRate(banner) * ((currentRolls.getOrDefault(banner, 0) - ConfigLoader.getUprateMinimumRoll(banner)));
                     return Math.max(increase, 0);
                 } else {
                     return 0;

@@ -1,4 +1,4 @@
-package com.teenkung.craftycrates.utils;
+package com.teenkung.craftycrates.utils.storage;
 
 import org.bukkit.inventory.ItemStack;
 
