@@ -3,7 +3,6 @@ package com.teenkung.craftycrates;
 import com.teenkung.craftycrates.utils.PullStorage;
 import com.teenkung.craftycrates.utils.RarityStorage;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -25,7 +24,7 @@ public class ConfigLoader {
     private static final HashMap<String, String> bannerIDs = new HashMap<>();
     private static final HashMap<String, Boolean> uprateEnable = new HashMap<>();
     private static final HashMap<String, Integer> uprateMinRolls = new HashMap<>();
-    private static final HashMap<String, Double> uprateAddtionalRate = new HashMap();
+    private static final HashMap<String, Integer> uprateAddtionalRate = new HashMap();
     private static final HashMap<String, String> upratePool = new HashMap<>();
     private static final HashMap<String, ArrayList<String>> rarities = new HashMap<>();
     private static final HashMap<String, HashMap<String, RarityStorage>> rarityStorage = new HashMap<>();
@@ -39,14 +38,25 @@ public class ConfigLoader {
     private static final HashMap<String, HashMap<String, PullStorage>> pullStorage = new HashMap<>();
 
     public static HashMap<String, Integer> getRarities(String ID) {
-        String filename = bannerIDs.get(ID);
-        HashMap<String, RarityStorage> storage = rarityStorage.getOrDefault(filename, new HashMap<>());
+        HashMap<String, RarityStorage> storage = rarityStorage.getOrDefault(ID, new HashMap<>());
         HashMap<String, Integer> result = new HashMap<>();
         for (String id : storage.keySet()) {
-            result.put(id, storage.get(id).getChance());
+            result.put(id, storage.get(id).chance());
         }
         return result;
     }
+    public static ArrayList<String> getBannerIdsList() { return BannerIdsList; }
+    public static Boolean getUprateEnabled(String banner) {
+        return uprateEnable.getOrDefault(banner, false);
+    }
+
+    public static Integer getUprateAdditionalRate(String banner) {
+        return uprateAddtionalRate.getOrDefault(banner, 0);
+    }
+    public static Integer getUprateMinimumRoll(String banner) {
+        return uprateAddtionalRate.getOrDefault(banner, 1000000);
+    }
+
 
 
 
@@ -106,12 +116,13 @@ public class ConfigLoader {
                     BannerList.add(filename);
                     Banners.put(filename, config);
 
-                    BannerIdsList.add(config.getString("banner_id"));
-                    bannerIDs.put(config.getString("banner_id"), filename);
-                    uprateEnable.put(filename, config.getBoolean("uprate.enabled", false));
-                    uprateMinRolls.put(filename, config.getInt("uprate.minimum_roll", 90));
-                    uprateAddtionalRate.put(filename, config.getDouble("uprate.additional_rate", 2.0));
-                    upratePool.put(filename, config.getString("uprate.uprate_pool", ""));
+                    String id = config.getString("banner_id");
+                    BannerIdsList.add(id);
+                    bannerIDs.put(id, filename);
+                    uprateEnable.put(id, config.getBoolean("uprate.enabled", false));
+                    uprateMinRolls.put(id, config.getInt("uprate.minimum_roll", 90));
+                    uprateAddtionalRate.put(id, config.getInt("uprate.additional_rate", 2));
+                    upratePool.put(id, config.getString("uprate.uprate_pool", ""));
 
                     ArrayList<String> l = new ArrayList<>();
                     HashMap<String, RarityStorage> storage = new HashMap<>();
@@ -127,8 +138,8 @@ public class ConfigLoader {
                             System.out.println(colorize("&6Could not find pool named " + config.getString("rarities."+key+".pool")));
                         }
                     }
-                    rarityStorage.put(filename, storage);
-                    rarities.put(filename, l);
+                    rarityStorage.put(id, storage);
+                    rarities.put(id, l);
 
                 } else {
                     System.out.println(colorize("&cUnable to load Banner File: " + file.getName() + "&c(Invalid rarities node)"));

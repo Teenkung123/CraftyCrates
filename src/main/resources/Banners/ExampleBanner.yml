@@ -3,7 +3,7 @@ banner_id: TEST
 uprate:
   enabled: true
   minimum_roll: 50
-  additional_rate: 2.0
+  additional_rate: 2
   uprate_pool: S6
 
 rarities:
