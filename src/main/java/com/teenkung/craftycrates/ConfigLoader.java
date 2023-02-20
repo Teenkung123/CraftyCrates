@@ -1,6 +1,6 @@
 package com.teenkung.craftycrates;
 
-import com.teenkung.craftycrates.utils.storage.PullStorage;
+import com.teenkung.craftycrates.utils.storage.PoolStorage;
 import com.teenkung.craftycrates.utils.storage.RarityStorage;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -24,7 +24,7 @@ public class ConfigLoader {
     private static final HashMap<String, String> bannerIDs = new HashMap<>();
     private static final HashMap<String, Boolean> uprateEnable = new HashMap<>();
     private static final HashMap<String, Integer> uprateMinRolls = new HashMap<>();
-    private static final HashMap<String, Float> uprateAddtionalRate = new HashMap();
+    private static final HashMap<String, Float> uprateAddtionalRate = new HashMap<>();
     private static final HashMap<String, String> upratePool = new HashMap<>();
     private static final HashMap<String, ArrayList<String>> rarities = new HashMap<>();
     private static final HashMap<String, HashMap<String, RarityStorage>> rarityStorage = new HashMap<>();
@@ -32,10 +32,14 @@ public class ConfigLoader {
     //Pull configuration
 
     private static final ArrayList<String> PullsIdList = new ArrayList<>();
+    private static final HashMap<String, String> pullsID = new HashMap<>();
     private static final HashMap<String, ArrayList<String>> pullsItems = new HashMap<>();
-    private static final HashMap<String, HashMap<String, PullStorage>> pullStorage = new HashMap<>();
+    private static final HashMap<String, HashMap<String, PoolStorage>> pullStorage = new HashMap<>();
 
-    public static HashMap<String, Float> getRarities(String ID) {
+
+    //================================================================================================================================
+
+    public static HashMap<String, Float> getBannerChance(String ID) {
         HashMap<String, RarityStorage> storage = rarityStorage.getOrDefault(ID, new HashMap<>());
         HashMap<String, Float> result = new HashMap<>();
         for (String id : storage.keySet()) {
@@ -43,6 +47,28 @@ public class ConfigLoader {
         }
         return result;
     }
+
+    public static RarityStorage getRarityStorage(String BannerID, String PoolId) {
+        return rarityStorage.getOrDefault(BannerID, new HashMap<>()).getOrDefault(PoolId, new RarityStorage("", 0F, ""));
+    }
+
+    public static PoolStorage getPoolStorage(String BannerID, String Pool) {
+        return pullStorage.getOrDefault(BannerID, new HashMap<>()).getOrDefault(Pool, new PoolStorage("", "", 0, new ArrayList<>(), 0));
+    }
+
+    public static String getPullIDByFileName(String FileName) {
+        return pullsID.getOrDefault(FileName.replaceAll(".yml", ""), "");
+    }
+
+    public static HashMap<String, Integer> getPullsWeight(String ID) {
+        HashMap<String, PoolStorage> storage = pullStorage.getOrDefault(ID, new HashMap<>());
+        HashMap<String, Integer> result = new HashMap<>();
+        for (String id : storage.keySet()) {
+            result.put(id, storage.get(id).getWeight());
+        }
+        return result;
+    }
+
     public static ArrayList<String> getBannerIdsList() { return BannerIdsList; }
     public static Boolean getUprateEnabled(String banner) {
         return uprateEnable.getOrDefault(banner, false);
@@ -74,19 +100,22 @@ public class ConfigLoader {
                     String filename = Pool.replaceAll(".yml", "");
                     PoolList.add(filename);
                     Pools.put(filename, config);
-                    PullsIdList.add(config.getString("pool_id"));
-                    pullsItems.put(filename, new ArrayList<>(section.getKeys(false)));
+                    String id = config.getString("pool_id");
+                    pullsID.put(filename, id);
+                    PullsIdList.add(id);
+                    pullsItems.put(id, new ArrayList<>(section.getKeys(false)));
+                    HashMap<String, PoolStorage> storage = new HashMap<>();
                     for (String key : section.getKeys(false)) {
-                        HashMap<String, PullStorage> l = new HashMap<>();
-                        l.put(key, new PullStorage(
+                        storage.put(key, new PoolStorage(
                                 config.getString("list."+key+".Category", ""),
                                 config.getString("list."+key+".ID"),
                                 config.getInt("list."+key+".Amount"),
                                 new ArrayList<>(config.getStringList("list."+key+".Command")),
                                 config.getInt("list."+key+".Weight")
                         ));
-                        pullStorage.put(filename, l);
                     }
+                    pullStorage.put(id, storage);
+                    System.out.println(colorize("&d"+pullStorage));
                 }
 
 
@@ -114,7 +143,7 @@ public class ConfigLoader {
 
                     String id = config.getString("banner_id");
                     BannerIdsList.add(id);
-                    bannerIDs.put(id, filename);
+                    bannerIDs.put(filename, id);
                     uprateEnable.put(id, config.getBoolean("uprate.enabled", false));
                     uprateMinRolls.put(id, config.getInt("uprate.minimum_roll", 90));
                     uprateAddtionalRate.put(id,  Double.valueOf(config.getDouble("uprate.additional_rate", 2D)).floatValue());

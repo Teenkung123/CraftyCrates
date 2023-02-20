@@ -14,7 +14,7 @@ public class MySQL {
     public void Connect() throws SQLException {
         connection = DriverManager.getConnection(
                 "jdbc:mysql://" + CraftyCrates.getInstance().getConfig().getString("MySQL.Host") + ":" + CraftyCrates.getInstance().getConfig().getString("MySQL.Port")
-                        + "/" + CraftyCrates.getInstance().getConfig().getString("MySQL.Database") + "?useSSL=false",
+                        + "/" + CraftyCrates.getInstance().getConfig().getString("MySQL.Database") + "?useSSL=false&autoReconnect=true",
                 CraftyCrates.getInstance().getConfig().getString("MySQL.User"),
                 CraftyCrates.getInstance().getConfig().getString("MySQL.Password")
         );
@@ -48,7 +48,7 @@ public class MySQL {
                 Statement statement = connection.createStatement();
                 statement.execute("CREATE TABLE IF NOT EXISTS `CraftyCrates_PlayerBannerData` ("
                         + "`ID` INT NOT NULL AUTO_INCREMENT, "
-                        + "`UUID` VARCHAR(50) NOT NULL DEFAULT '', "
+                        + "`UUID` VARCHAR(50 ) NOT NULL DEFAULT '', "
                         + "`BannerID` VARCHAR(50) NOT NULL DEFAULT '', "
                         + "`TotalRolls` INT NOT NULL DEFAULT '0', "
                         + "`CurrentRolls` INT NOT NULL DEFAULT '0', "

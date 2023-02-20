@@ -2,12 +2,16 @@ package com.teenkung.craftycrates.MySQL;
 
 import com.teenkung.craftycrates.ConfigLoader;
 import com.teenkung.craftycrates.CraftyCrates;
+import com.teenkung.craftycrates.utils.selector.ChanceRandomSelector;
+import com.teenkung.craftycrates.utils.selector.WeightedRandomSelector;
+import com.teenkung.craftycrates.utils.storage.ItemPair;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -80,6 +84,16 @@ public class PlayerDataManager {
         } else {
             return 0;
         }
+    }
+
+    public ArrayList<ItemPair> requestPull(String banner, Integer amount) {
+        ArrayList<ItemPair> result = new ArrayList<>();
+        for (int i = 0 ; i < amount; i++) {
+            String selectedID = ChanceRandomSelector.selectByChance(ConfigLoader.getBannerChance(banner));
+            String selectedItem = WeightedRandomSelector.select(ConfigLoader.getPullsWeight(selectedID));
+        }
+
+        return result;
     }
 
 }
