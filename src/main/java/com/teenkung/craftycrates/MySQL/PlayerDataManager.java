@@ -2,11 +2,15 @@ package com.teenkung.craftycrates.MySQL;
 
 import com.teenkung.craftycrates.ConfigLoader;
 import com.teenkung.craftycrates.CraftyCrates;
+import com.teenkung.craftycrates.utils.record.ItemPair;
 import com.teenkung.craftycrates.utils.selector.ChanceRandomSelector;
 import com.teenkung.craftycrates.utils.selector.WeightedRandomSelector;
-import com.teenkung.craftycrates.utils.storage.ItemPair;
+import de.tr7zw.nbtapi.NBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
+import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,7 +26,10 @@ public class PlayerDataManager {
     private final HashMap<String, Integer> totalRolls = new HashMap<>();
     private final HashMap<String, Integer> currentRolls = new HashMap<>();
 
+    private final Player player;
+
     public PlayerDataManager(Player player) {
+        this.player = player;
         UUID uuid = player.getUniqueId();
         // Run the code asynchronously to avoid blocking the main thread
         Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
@@ -69,6 +76,53 @@ public class PlayerDataManager {
         return totalRolls.getOrDefault(banner, 0);
     }
 
+    public void setCurrentRoll(String banner, int currentRoll) {
+        currentRolls.put(banner, currentRoll);
+        Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
+            try {
+                PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("UPDATE `craftycrates_playerbannerdata` SET `CurrentRolls` = ? WHERE `UUID` = ? AND `BannerID` = ?;");
+                ps.setInt(1, currentRoll);
+                ps.setString(2, player.getUniqueId().toString());
+                ps.setString(3, banner);
+                ps.executeUpdate();
+                ps.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public void setTotalRoll(String banner, int TotalRoll) {
+        totalRolls.put(banner, TotalRoll);
+        Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
+            try {
+                PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("UPDATE `craftycrates_playerbannerdata` SET `TotalRolls` = ? WHERE `UUID` = ? AND `BannerID` = ?;");
+                ps.setInt(1, TotalRoll);
+                ps.setString(2, player.getUniqueId().toString());
+                ps.setString(3, banner);
+                ps.executeUpdate();
+                ps.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public void applyLogs(String banner, ItemStack stack) {
+        Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
+            try {
+                ReadWriteNBT nbt = NBT.itemStackToNBT(stack);
+                PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("INSERT INTO craftycrates_logs (UUID, BannerID, ItemNBT, Date) VALUES (?, ?, ?, ?)");
+                ps.setString(1, this.player.getUniqueId().toString());
+                ps.setString(2, banner);
+                ps.setString(3, nbt.toString());
+                ps.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
     public float getAdditionalRate(String banner) {
         if (ConfigLoader.getBannerIdsList().contains(banner)) {
             if (ConfigLoader.getUprateEnabled(banner)) {
@@ -89,8 +143,24 @@ public class PlayerDataManager {
     public ArrayList<ItemPair> requestPull(String banner, Integer amount) {
         ArrayList<ItemPair> result = new ArrayList<>();
         for (int i = 0 ; i < amount; i++) {
-            String selectedID = ChanceRandomSelector.selectByChance(ConfigLoader.getBannerChance(banner));
-            String selectedItem = WeightedRandomSelector.select(ConfigLoader.getPullsWeight(selectedID));
+            HashMap<String, Float> rate = ConfigLoader.getBannerChance(banner);
+            if (getAdditionalRate(banner) > 0) {
+                rate.replace(banner, rate.get(banner)+getAdditionalRate(banner));
+            }
+            System.out.println(colorize("&dRate: &b" + rate.get(banner) + " &c| &dRolls: &b" + currentRolls));
+            String selectedID = ChanceRandomSelector.selectByChance(rate);
+            String selectedPoolID = WeightedRandomSelector.select(ConfigLoader.getPullsWeight(ConfigLoader.getPullIDByFileName(ConfigLoader.getRarityStorage(banner, selectedID).pool())));
+            String ItemCategory = ConfigLoader.getPoolStorage(selectedID, selectedPoolID).category();
+            String ItemID = ConfigLoader.getPoolStorage(selectedID, selectedPoolID).id();
+            ItemStack stack = MMOItems.plugin.getItem(ItemCategory, ItemID);
+            ItemPair pair = new ItemPair(stack , ConfigLoader.getPoolStorage(selectedID, selectedPoolID).commands());
+            result.add(pair);
+
+            //MySQL things
+            setCurrentRoll(banner, currentRolls.get(banner)+1);
+            setTotalRoll(banner, totalRolls.get(banner)+1);
+            applyLogs(banner, stack);
+
         }
 
         return result;

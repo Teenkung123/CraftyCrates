@@ -1,7 +1,7 @@
 package com.teenkung.craftycrates;
 
-import com.teenkung.craftycrates.utils.storage.PoolStorage;
-import com.teenkung.craftycrates.utils.storage.RarityStorage;
+import com.teenkung.craftycrates.utils.record.PoolStorage;
+import com.teenkung.craftycrates.utils.record.RarityStorage;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -64,7 +64,7 @@ public class ConfigLoader {
         HashMap<String, PoolStorage> storage = pullStorage.getOrDefault(ID, new HashMap<>());
         HashMap<String, Integer> result = new HashMap<>();
         for (String id : storage.keySet()) {
-            result.put(id, storage.get(id).getWeight());
+            result.put(id, storage.get(id).weight());
         }
         return result;
     }

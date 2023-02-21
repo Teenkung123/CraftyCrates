@@ -1,16 +1,26 @@
 package com.teenkung.craftycrates.commands;
 
 import com.teenkung.craftycrates.ConfigLoader;
+import com.teenkung.craftycrates.events.JoinEvent;
+import com.teenkung.craftycrates.utils.Functions;
 import com.teenkung.craftycrates.utils.selector.ChanceRandomSelector;
 import com.teenkung.craftycrates.utils.selector.WeightedRandomSelector;
-import com.teenkung.craftycrates.utils.storage.RarityStorage;
+import com.teenkung.craftycrates.utils.record.ItemPair;
+import com.teenkung.craftycrates.utils.record.RarityStorage;
+import de.tr7zw.nbtapi.NBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Objects;
+
+import static com.teenkung.craftycrates.CraftyCrates.colorize;
 
 public class CommandHandler implements CommandExecutor {
     @Override
@@ -19,16 +29,30 @@ public class CommandHandler implements CommandExecutor {
             if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
 
             } else if (args[0].equalsIgnoreCase("open")) {
-
-            } else if (args[0].equalsIgnoreCase("open-10")) {
-
+                if (args.length <= 3) {
+                    if (ConfigLoader.getBannerIdsList().contains(args[1])) {
+                        ArrayList<ItemPair> ret = JoinEvent.getDataManager().get(player).requestPull(args[1], Integer.valueOf(args[2]));
+                        Functions.giveItem(ret, player);
+                        Functions.dispatchCommand(ret, player);
+                    } else {
+                        player.sendMessage(colorize("&cUnknown Banner ID, please check your arguments (case sensitive)"));
+                    }
+                } else {
+                    player.sendMessage(colorize("&cInvalid argument! /craftycrates open <bannerID> <amount>"));
+                }
             } else if (args[0].equalsIgnoreCase("info")) {
 
             } else if (args[0].equalsIgnoreCase("log")) {
                 
+            } else if (args[0].equalsIgnoreCase("reload")) {
+
             }
         } else {
-            System.out.println(ConfigLoader.getBannerChance("TEST"));
+            ItemStack stack = new ItemStack(Material.DIAMOND_AXE, 2);
+            ReadWriteNBT nbt = NBT.itemStackToNBT(stack);
+            System.out.println(nbt);
+
+            /*System.out.println(ConfigLoader.getBannerChance("TEST"));
             long start = System.currentTimeMillis();
             int S2 = 0;
             int S3 = 0;
@@ -40,7 +64,7 @@ public class CommandHandler implements CommandExecutor {
                 RarityStorage storage = ConfigLoader.getRarityStorage("TEST", selectedID);
                 String pullID = ConfigLoader.getPullIDByFileName(storage.pool());
                 String selectedPoolID = WeightedRandomSelector.select(ConfigLoader.getPullsWeight(pullID));
-                String ItemCategory = ConfigLoader.getPoolStorage(selectedID, selectedPoolID).getCategory();
+                String ItemCategory = ConfigLoader.getPoolStorage(selectedID, selectedPoolID).category();
                 System.out.println("Randomized: " + selectedID);
                 System.out.println("PullID: " + selectedPoolID);
                 System.out.println(ItemCategory);
@@ -59,7 +83,7 @@ public class CommandHandler implements CommandExecutor {
                     S6++;
                 }
             }
-            /*float S2p = (S2/10000F)*100;
+            float S2p = (S2/10000F)*100;
             float S3p = (S3/10000F)*100;
             float S4p = (S4/10000F)*100;
             float S5p = (S5/10000F)*100;
