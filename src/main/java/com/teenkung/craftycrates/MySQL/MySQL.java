@@ -12,12 +12,14 @@ public class MySQL {
     private Connection connection;
 
     public void Connect() throws SQLException {
-        connection = DriverManager.getConnection(
-                "jdbc:mysql://" + CraftyCrates.getInstance().getConfig().getString("MySQL.Host") + ":" + CraftyCrates.getInstance().getConfig().getString("MySQL.Port")
-                        + "/" + CraftyCrates.getInstance().getConfig().getString("MySQL.Database") + "?useSSL=false&autoReconnect=true",
-                CraftyCrates.getInstance().getConfig().getString("MySQL.User"),
-                CraftyCrates.getInstance().getConfig().getString("MySQL.Password")
-        );
+        if (!isConnected()) {
+            connection = DriverManager.getConnection(
+                    "jdbc:mysql://" + CraftyCrates.getInstance().getConfig().getString("MySQL.Host") + ":" + CraftyCrates.getInstance().getConfig().getString("MySQL.Port")
+                            + "/" + CraftyCrates.getInstance().getConfig().getString("MySQL.Database") + "?useSSL=false&autoReconnect=true",
+                    CraftyCrates.getInstance().getConfig().getString("MySQL.User"),
+                    CraftyCrates.getInstance().getConfig().getString("MySQL.Password")
+            );
+        }
     }
 
     public Connection getConnection() { return connection; }
@@ -71,7 +73,7 @@ public class MySQL {
                     "`ID` INT NOT NULL AUTO_INCREMENT, " +
                     "`UUID` VARCHAR(50) NOT NULL DEFAULT '' COLLATE 'utf8_general_ci', " +
                     "`BannerID` VARCHAR(50) NOT NULL DEFAULT '' COLLATE 'utf8_general_ci', " +
-                    "`ItemNBT` LONGTEXT NOT NULL DEFAULT '' COLLATE 'utf8_general_ci', " +
+                    "`Data` LONGTEXT NOT NULL DEFAULT '' COLLATE 'utf8_general_ci', " +
                     "`Date` DATETIME NOT NULL DEFAULT '1000-01-01 00:00:00', " +
                     "PRIMARY KEY (`ID`) " +
                     ") " +

@@ -1,11 +1,15 @@
 package com.teenkung.craftycrates;
 
 import com.iridium.iridiumcolorapi.IridiumColorAPI;
+import com.teenkung.craftycrates.MySQL.PlayerDataManager;
 import com.teenkung.craftycrates.commands.CommandHandler;
 import com.teenkung.craftycrates.events.JoinEvent;
 import com.teenkung.craftycrates.MySQL.MySQL;
+import com.teenkung.craftycrates.events.LogsEvent;
+import com.teenkung.craftycrates.events.NEIEvent;
 import com.teenkung.craftycrates.events.QuitEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.Connection;
@@ -30,9 +34,19 @@ public final class CraftyCrates extends JavaPlugin {
                 database.Connect();
                 connection = database.getConnection();
                 System.out.println(colorize("&aConnected to MySQL Server!"));
-                Bukkit.getScheduler().runTaskLaterAsynchronously(this, database::createTable, 20);
+
+                Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
+                    database.createTable();
+                    Bukkit.getScheduler().runTask(this, () -> {
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            if (!JoinEvent.getDataManager().containsKey(player)) {
+                                JoinEvent.getDataManager().put(player, new PlayerDataManager(player));
+                            }
+                        }
+                    });
+                }, 20);
             } catch (SQLException e) {
-                System.out.println(colorize("&4Could not connect to MySQL server. Pleasse check your configuration settings.\nError: " + e));
+                System.out.println(colorize("&4Could not connect to MySQL server. Please check your configuration settings.\nError: " + e));
                 System.out.println(colorize("&4Disabling Plugin. . ."));
                 Bukkit.getPluginManager().disablePlugin(this);
             }
@@ -41,6 +55,8 @@ public final class CraftyCrates extends JavaPlugin {
         System.out.println(colorize("&eRegistering Plugin Event Handlers. . ."));
         Bukkit.getPluginManager().registerEvents(new JoinEvent(), this);
         Bukkit.getPluginManager().registerEvents(new QuitEvent(), this);
+        Bukkit.getPluginManager().registerEvents(new NEIEvent(), this);
+        Bukkit.getPluginManager().registerEvents(new LogsEvent(), this);
         System.out.println(colorize("&aSuccessfully Registered all Event Handlers!"));
     }
 

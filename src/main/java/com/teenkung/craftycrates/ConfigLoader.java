@@ -2,6 +2,7 @@ package com.teenkung.craftycrates;
 
 import com.teenkung.craftycrates.utils.record.PoolStorage;
 import com.teenkung.craftycrates.utils.record.RarityStorage;
+import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -52,15 +53,15 @@ public class ConfigLoader {
         return rarityStorage.getOrDefault(BannerID, new HashMap<>()).getOrDefault(PoolId, new RarityStorage("", 0F, ""));
     }
 
-    public static PoolStorage getPoolStorage(String BannerID, String Pool) {
-        return pullStorage.getOrDefault(BannerID, new HashMap<>()).getOrDefault(Pool, new PoolStorage("", "", 0, new ArrayList<>(), 0));
+    public static PoolStorage getPoolStorage(String PoolID, String SubPool) {
+        return pullStorage.getOrDefault(PoolID, new HashMap<>()).getOrDefault(SubPool, new PoolStorage("", "", 0, new ArrayList<>(), 0));
     }
 
-    public static String getPullIDByFileName(String FileName) {
+    public static String getPoolIDByFileName(String FileName) {
         return pullsID.getOrDefault(FileName.replaceAll(".yml", ""), "");
     }
 
-    public static HashMap<String, Integer> getPullsWeight(String ID) {
+    public static HashMap<String, Integer> getPoolsWeight(String ID) {
         HashMap<String, PoolStorage> storage = pullStorage.getOrDefault(ID, new HashMap<>());
         HashMap<String, Integer> result = new HashMap<>();
         for (String id : storage.keySet()) {
@@ -80,8 +81,9 @@ public class ConfigLoader {
     public static Integer getUprateMinimumRoll(String banner) {
         return uprateMinRolls.getOrDefault(banner, 1000000);
     }
-
-
+    public static String getUpratePool(String banner) {
+        return upratePool.getOrDefault(banner, "");
+    }
 
 
     public static void loadConfig() {
@@ -89,6 +91,8 @@ public class ConfigLoader {
         Instance.getConfig().options().copyDefaults(true);
         Instance.saveDefaultConfig();
         Instance.reloadConfig();
+
+
 
         System.out.println(colorize("&eLoading Pool Files. . ."));
         for (String Pool : Instance.getConfig().getStringList("Pools")) {
@@ -106,16 +110,19 @@ public class ConfigLoader {
                     pullsItems.put(id, new ArrayList<>(section.getKeys(false)));
                     HashMap<String, PoolStorage> storage = new HashMap<>();
                     for (String key : section.getKeys(false)) {
-                        storage.put(key, new PoolStorage(
-                                config.getString("list."+key+".Category", ""),
-                                config.getString("list."+key+".ID"),
-                                config.getInt("list."+key+".Amount"),
-                                new ArrayList<>(config.getStringList("list."+key+".Command")),
-                                config.getInt("list."+key+".Weight")
-                        ));
+                        if (MMOItems.plugin.getItem(config.getString("list."+key+".Category", ""), config.getString("list."+key+".ID")) != null) {
+                            storage.put(key, new PoolStorage(
+                                    config.getString("list."+key+".Category", ""),
+                                    config.getString("list."+key+".ID"),
+                                    config.getInt("list."+key+".Amount"),
+                                    new ArrayList<>(config.getStringList("list."+key+".Command")),
+                                    config.getInt("list."+key+".Weight")
+                            ));
+                        } else {
+                            System.out.println(colorize("&cCould not find Item with Category "+config.getString("list."+key+".Category", "")+" And ID: "+config.getString("list."+key+".ID")));
+                        }
                     }
                     pullStorage.put(id, storage);
-                    System.out.println(colorize("&d"+pullStorage));
                 }
 
 

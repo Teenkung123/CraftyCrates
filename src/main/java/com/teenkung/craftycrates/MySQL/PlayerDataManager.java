@@ -2,70 +2,84 @@ package com.teenkung.craftycrates.MySQL;
 
 import com.teenkung.craftycrates.ConfigLoader;
 import com.teenkung.craftycrates.CraftyCrates;
+import com.teenkung.craftycrates.GUIs.LogsGUI;
+import com.teenkung.craftycrates.utils.ItemSerialization;
 import com.teenkung.craftycrates.utils.record.ItemPair;
 import com.teenkung.craftycrates.utils.selector.ChanceRandomSelector;
 import com.teenkung.craftycrates.utils.selector.WeightedRandomSelector;
-import de.tr7zw.nbtapi.NBT;
-import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.IOException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.teenkung.craftycrates.CraftyCrates.colorize;
 
 public class PlayerDataManager {
 
-    private final HashMap<String, Integer> totalRolls = new HashMap<>();
-    private final HashMap<String, Integer> currentRolls = new HashMap<>();
+    private final ConcurrentHashMap<String, Integer> totalRolls = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Integer> currentRolls = new ConcurrentHashMap<>();
+
+    private final LogsGUI gui;
 
     private final Player player;
 
     public PlayerDataManager(Player player) {
         this.player = player;
+        gui = new LogsGUI(player);
+        gui.setPage(1);
         UUID uuid = player.getUniqueId();
-        // Run the code asynchronously to avoid blocking the main thread
-        Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
-            // Query to check if a banner for a player is present in the database
-            String query = "SELECT COUNT(UUID), TotalRolls, CurrentRolls FROM craftycrates_playerbannerdata WHERE UUID = ? AND BannerID = ?;";
+            String selectQuery = "SELECT BannerID, TotalRolls, CurrentRolls FROM craftycrates_playerbannerdata WHERE UUID = ?";
+            try {
+                Connection conn = CraftyCrates.getConnection();
+                PreparedStatement selectStatement = conn.prepareStatement(selectQuery) ;
+                // Set the placeholder for the player UUID in the select query
+                selectStatement.setString(1, uuid.toString());
+                try (ResultSet rs = selectStatement.executeQuery()) {
+                    // Load the player data for each banner
+                    while (rs.next()) {
+                        String banner = rs.getString("BannerID");
+                        totalRolls.put(banner, rs.getInt("TotalRolls"));
+                        currentRolls.put(banner, rs.getInt("CurrentRolls"));
+                    }
+                }
+            } catch (SQLException e) {
+                // Handle any errors that occur during the database operations
+                System.out.println(colorize("&4Cannot load Data from Player " + player.getName()));
+               Bukkit.getScheduler().runTask(CraftyCrates.getInstance(), () -> player.kickPlayer(colorize("&4Something went wrong! Please reconnect in a few seconds")));
+                }
             // Loop through each banner ID
             for (String banner : ConfigLoader.getBannerIdsList()) {
-                try (PreparedStatement statement = CraftyCrates.getConnection().prepareStatement(query)) {
-                    // Set the placeholders for the player UUID and banner ID in the query
-                    statement.setString(1, uuid.toString());
-                    statement.setString(2, banner);
-                    try (ResultSet rs = statement.executeQuery()) {
-                        // If the banner is not present in the database, insert a new entry
-                        if (rs.next() && rs.getInt(1) == 0) {
-                            String query2 = "INSERT INTO CraftyCrates_PlayerBannerData (UUID, BannerID, TotalRolls, CurrentRolls) VALUES (?, ?, 0, 0)";
-                            try (PreparedStatement ps = CraftyCrates.getConnection().prepareStatement(query2)) {
-                                // Set the placeholders for the player UUID and banner ID in the insert query
-                                ps.setString(1, uuid.toString());
-                                ps.setString(2, banner);
-                                ps.executeUpdate();
-                            }
-                        } else {
-                            // If the banner is present in the database, load the player data for that banner
-                            totalRolls.put(banner, rs.getInt("TotalRolls"));
-                            currentRolls.put(banner, rs.getInt("CurrentRolls"));
+                // Check if the banner data has been loaded from the database
+                if (!totalRolls.containsKey(banner) || !currentRolls.containsKey(banner)) {
+                    // If the banner data is missing, insert a new entry in the database
+                    String insertQuery = "INSERT INTO CraftyCrates_PlayerBannerData (UUID, BannerID, TotalRolls, CurrentRolls) VALUES (?, ?, 0, 0)";
+                    try (Connection conn = CraftyCrates.getConnection();
+                         PreparedStatement insertStatement = conn.prepareStatement(insertQuery)) {
+                        // Set the placeholders for the player UUID and banner ID in the insert query
+                        insertStatement.setString(1, uuid.toString());
+                        insertStatement.setString(2, banner);
+                        insertStatement.executeUpdate();
+                    } catch (SQLException e) {
+                        // Handle any errors that occur during the database operations
+                        System.out.println(colorize("&4Cannot load Data from Player " + player.getName()));
+                        synchronized (CraftyCrates.getInstance()) {
+                            player.kickPlayer(colorize("&4Something went wrong! Please reconnect in a few seconds"));
                         }
-                    }
-                } catch (SQLException e) {
-                    // Handle any errors that occur during the database operations
-                    System.out.println(colorize("&4Cannot load Data from Player " + player.getName()));
-                    synchronized (CraftyCrates.getInstance()) {
-                        player.kickPlayer(colorize("&4Something went wrong! Please reconnect in a few seconds"));
+                        return;
                     }
                 }
             }
-        });
     }
 
     public int getCurrentRoll(String banner) {
@@ -79,91 +93,117 @@ public class PlayerDataManager {
     public void setCurrentRoll(String banner, int currentRoll) {
         currentRolls.put(banner, currentRoll);
         Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
-            try {
-                PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("UPDATE `craftycrates_playerbannerdata` SET `CurrentRolls` = ? WHERE `UUID` = ? AND `BannerID` = ?;");
+            try (PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("UPDATE `craftycrates_playerbannerdata` SET `CurrentRolls` = ? WHERE `UUID` = ? AND `BannerID` = ?;")) {
                 ps.setInt(1, currentRoll);
                 ps.setString(2, player.getUniqueId().toString());
                 ps.setString(3, banner);
                 ps.executeUpdate();
-                ps.close();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
-    public void setTotalRoll(String banner, int TotalRoll) {
-        totalRolls.put(banner, TotalRoll);
+    public void setTotalRoll(String banner, int totalRoll) {
+        totalRolls.put(banner, totalRoll);
         Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
-            try {
-                PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("UPDATE `craftycrates_playerbannerdata` SET `TotalRolls` = ? WHERE `UUID` = ? AND `BannerID` = ?;");
-                ps.setInt(1, TotalRoll);
+            try (PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("UPDATE `craftycrates_playerbannerdata` SET `TotalRolls` = ? WHERE `UUID` = ? AND `BannerID` = ?;")) {
+                ps.setInt(1, totalRoll);
                 ps.setString(2, player.getUniqueId().toString());
                 ps.setString(3, banner);
                 ps.executeUpdate();
-                ps.close();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
+
+    public LogsGUI getLogsGUI() {
+        return gui;
+    }
+
+    /**
+     * Adds the player's roll and the won item into the logs table asynchronously
+     * @param banner The banner ID for which the logs are being applied
+     * @param stack The won item stack
+     */
     public void applyLogs(String banner, ItemStack stack) {
         Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
-            try {
-                ReadWriteNBT nbt = NBT.itemStackToNBT(stack);
-                PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("INSERT INTO craftycrates_logs (UUID, BannerID, ItemNBT, Date) VALUES (?, ?, ?, ?)");
-                ps.setString(1, this.player.getUniqueId().toString());
+            try (PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("INSERT INTO craftycrates_logs (UUID, BannerID, Data, Date) VALUES (?, ?, ?, NOW())")) {
+                ps.setString(1, player.getUniqueId().toString());
                 ps.setString(2, banner);
-                ps.setString(3, nbt.toString());
-                ps.close();
-            } catch (SQLException e) {
+                ps.setString(3, ItemSerialization.serializeItemStack(stack));
+                ps.executeUpdate();
+            } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
+    /**
+     * Returns the additional rate for the specified banner based on current rolls
+     * @param banner The banner ID for which the additional rate is being calculated
+     * @return The additional rate
+     */
     public float getAdditionalRate(String banner) {
-        if (ConfigLoader.getBannerIdsList().contains(banner)) {
-            if (ConfigLoader.getUprateEnabled(banner)) {
-                if (currentRolls.getOrDefault(banner, 0) <= ConfigLoader.getUprateMinimumRoll(banner)) {
-                    float increase = ConfigLoader.getUprateAdditionalRate(banner) * ((currentRolls.getOrDefault(banner, 0) - ConfigLoader.getUprateMinimumRoll(banner)));
-                    return Math.max(increase, 0);
-                } else {
-                    return 0;
-                }
-            } else {
-                return 0;
+        if (ConfigLoader.getBannerIdsList().contains(banner) && ConfigLoader.getUprateEnabled(banner)) {
+            int currentRoll = currentRolls.getOrDefault(banner, 0);
+            int minRoll = ConfigLoader.getUprateMinimumRoll(banner);
+            if (currentRoll >= minRoll) {
+                float increase = ConfigLoader.getUprateAdditionalRate(banner) * (currentRoll - minRoll);
+                return Math.max(increase, 0);
             }
-        } else {
-            return 0;
         }
+        return 0;
     }
 
-    public ArrayList<ItemPair> requestPull(String banner, Integer amount) {
-        ArrayList<ItemPair> result = new ArrayList<>();
-        for (int i = 0 ; i < amount; i++) {
-            HashMap<String, Float> rate = ConfigLoader.getBannerChance(banner);
-            if (getAdditionalRate(banner) > 0) {
-                rate.replace(banner, rate.get(banner)+getAdditionalRate(banner));
+    /**
+     * Requests the specified amount of item pairs from the pool based on the specified banner
+     * @param banner The banner ID for which the pool is being requested
+     * @param amount The amount of item pairs being requested
+     * @return An ArrayList of ItemPair objects
+     */
+    public CompletableFuture<ArrayList<ItemPair>> requestPool(String banner, Integer amount) {
+        CompletableFuture<ArrayList<ItemPair>> future = new CompletableFuture<>();
+        Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
+            ArrayList<ItemPair> result = new ArrayList<>();
+            for (int i = 0; i < amount; i++) {
+                HashMap<String, Float> rate = ConfigLoader.getBannerChance(banner);
+                float additional = getAdditionalRate(banner);
+                if (additional > 0) {
+                    rate.put(ConfigLoader.getUpratePool(banner), rate.get(ConfigLoader.getUpratePool(banner)) + additional);
+                }
+                String selectedID = ChanceRandomSelector.selectByChance(rate);
+                if (selectedID == null) {
+                    continue;
+                }
+                String poolStorage = ConfigLoader.getRarityStorage(banner, selectedID).pool();
+                String poolID = ConfigLoader.getPoolIDByFileName(poolStorage);
+                HashMap<String, Integer> poolWeight = ConfigLoader.getPoolsWeight(poolID);
+                String selectedPoolID = WeightedRandomSelector.select(poolWeight);
+                String itemCategory = ConfigLoader.getPoolStorage(poolID, selectedPoolID).category();
+                String itemID = ConfigLoader.getPoolStorage(poolID, selectedPoolID).id();
+
+                Bukkit.getScheduler().runTask(CraftyCrates.getInstance(), () -> {
+                    ItemStack stack = MMOItems.plugin.getItem(itemCategory, itemID);
+                    ItemPair pair = new ItemPair(stack, ConfigLoader.getPoolStorage(selectedID, selectedPoolID).commands());
+                    result.add(pair);
+
+                    //MySQL things
+                    int currentRoll = currentRolls.getOrDefault(banner, 0) + 1;
+                    if (selectedID.equals(ConfigLoader.getUpratePool(banner))) {
+                        setCurrentRoll(banner, 0);
+                    } else {
+                        setCurrentRoll(banner, currentRoll);
+                    }
+                    setTotalRoll(banner, totalRolls.getOrDefault(banner, 0) + 1);
+                    applyLogs(banner, stack);
+                });
             }
-            System.out.println(colorize("&dRate: &b" + rate.get(banner) + " &c| &dRolls: &b" + currentRolls));
-            String selectedID = ChanceRandomSelector.selectByChance(rate);
-            String selectedPoolID = WeightedRandomSelector.select(ConfigLoader.getPullsWeight(ConfigLoader.getPullIDByFileName(ConfigLoader.getRarityStorage(banner, selectedID).pool())));
-            String ItemCategory = ConfigLoader.getPoolStorage(selectedID, selectedPoolID).category();
-            String ItemID = ConfigLoader.getPoolStorage(selectedID, selectedPoolID).id();
-            ItemStack stack = MMOItems.plugin.getItem(ItemCategory, ItemID);
-            ItemPair pair = new ItemPair(stack , ConfigLoader.getPoolStorage(selectedID, selectedPoolID).commands());
-            result.add(pair);
-
-            //MySQL things
-            setCurrentRoll(banner, currentRolls.get(banner)+1);
-            setTotalRoll(banner, totalRolls.get(banner)+1);
-            applyLogs(banner, stack);
-
-        }
-
-        return result;
+            future.complete(result);
+        });
+        return future;
     }
 
 }

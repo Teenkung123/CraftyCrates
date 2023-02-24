@@ -1,13 +1,19 @@
 package com.teenkung.craftycrates.utils;
 
+import com.google.inject.internal.Nullable;
+import com.teenkung.craftycrates.GUIs.NotEnoughInventoryGUI;
 import com.teenkung.craftycrates.utils.record.ItemPair;
+import de.tr7zw.nbtapi.NBTItem;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+
+import static com.teenkung.craftycrates.CraftyCrates.colorize;
 
 public class Functions {
 
@@ -27,6 +33,21 @@ public class Functions {
             }
             gui.open();
         }
+    }
+
+    public static ItemStack getInventoryItem(Material material, int amount, @Nullable String name, @Nullable ArrayList<String> lore) {
+        ItemStack stack = new ItemStack(material, amount);
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(colorize(name));
+            meta.setLore(lore);
+            stack.setItemMeta(meta);
+        }
+        NBTItem nbt = new NBTItem(stack);
+        nbt.setBoolean("Background", true);
+        nbt.applyNBT(stack);
+        return stack;
+
     }
     public static void dispatchCommand(ArrayList<ItemPair> ret, Player player) {
         for (ItemPair pair : ret) {
