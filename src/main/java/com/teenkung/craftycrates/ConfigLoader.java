@@ -15,14 +15,9 @@ import static com.teenkung.craftycrates.CraftyCrates.colorize;
 public class ConfigLoader {
 
     //Overall Config Variable
-    private static final ArrayList<String> BannerList = new ArrayList<>();
     private static final ArrayList<String> PoolList = new ArrayList<>();
-    private static final HashMap<String, YamlConfiguration> Banners = new HashMap<>();
-    private static final HashMap<String, YamlConfiguration> Pools = new HashMap<>();
-
     //Banner Configuration
     private static final ArrayList<String> BannerIdsList = new ArrayList<>();
-    private static final HashMap<String, String> bannerIDs = new HashMap<>();
     private static final HashMap<String, Boolean> uprateEnable = new HashMap<>();
     private static final HashMap<String, Integer> uprateMinRolls = new HashMap<>();
     private static final HashMap<String, Float> uprateAddtionalRate = new HashMap<>();
@@ -30,15 +25,32 @@ public class ConfigLoader {
     private static final HashMap<String, ArrayList<String>> rarities = new HashMap<>();
     private static final HashMap<String, HashMap<String, RarityStorage>> rarityStorage = new HashMap<>();
 
-    //Pull configuration
+    //Pool configuration
 
-    private static final ArrayList<String> PullsIdList = new ArrayList<>();
-    private static final HashMap<String, String> pullsID = new HashMap<>();
-    private static final HashMap<String, ArrayList<String>> pullsItems = new HashMap<>();
-    private static final HashMap<String, HashMap<String, PoolStorage>> pullStorage = new HashMap<>();
+    private static final HashMap<String, String> poolsID = new HashMap<>();
+    private static final HashMap<String, ArrayList<String>> poolsItems = new HashMap<>();
+    private static final HashMap<String, HashMap<String, PoolStorage>> poolStorage = new HashMap<>();
 
 
     //================================================================================================================================
+
+    public static void reloadConfig() {
+        PoolList.clear();
+
+        BannerIdsList.clear();
+        uprateEnable.clear();
+        uprateMinRolls.clear();
+        uprateAddtionalRate.clear();
+        upratePool.clear();
+        rarities.clear();
+        rarityStorage.clear();
+
+        poolsID.clear();
+        poolsItems.clear();
+        poolStorage.clear();
+
+        loadConfig();
+    }
 
     public static HashMap<String, Float> getBannerChance(String ID) {
         HashMap<String, RarityStorage> storage = rarityStorage.getOrDefault(ID, new HashMap<>());
@@ -54,15 +66,15 @@ public class ConfigLoader {
     }
 
     public static PoolStorage getPoolStorage(String PoolID, String SubPool) {
-        return pullStorage.getOrDefault(PoolID, new HashMap<>()).getOrDefault(SubPool, new PoolStorage("", "", 0, new ArrayList<>(), 0));
+        return poolStorage.getOrDefault(PoolID, new HashMap<>()).getOrDefault(SubPool, new PoolStorage("", "", 0, new ArrayList<>(), 0));
     }
 
     public static String getPoolIDByFileName(String FileName) {
-        return pullsID.getOrDefault(FileName.replaceAll(".yml", ""), "");
+        return poolsID.getOrDefault(FileName.replaceAll(".yml", ""), "");
     }
 
     public static HashMap<String, Integer> getPoolsWeight(String ID) {
-        HashMap<String, PoolStorage> storage = pullStorage.getOrDefault(ID, new HashMap<>());
+        HashMap<String, PoolStorage> storage = poolStorage.getOrDefault(ID, new HashMap<>());
         HashMap<String, Integer> result = new HashMap<>();
         for (String id : storage.keySet()) {
             result.put(id, storage.get(id).weight());
@@ -85,14 +97,24 @@ public class ConfigLoader {
         return upratePool.getOrDefault(banner, "");
     }
 
+    public static ArrayList<String> getRarities(String banner) {
+        return rarities.getOrDefault(banner, new ArrayList<>());
+    }
+
+    public static ArrayList<String> getSubPoolsFromPoolIDs(String poolID) {
+        return poolsItems.getOrDefault(poolID, new ArrayList<>());
+    }
+
+    public static Integer getTotalPoolWeight(String poolID) {
+        return getPoolsWeight(poolID).values().stream().mapToInt(Integer::intValue).sum();
+    }
+
 
     public static void loadConfig() {
         CraftyCrates Instance = CraftyCrates.getInstance();
         Instance.getConfig().options().copyDefaults(true);
         Instance.saveDefaultConfig();
         Instance.reloadConfig();
-
-
 
         System.out.println(colorize("&eLoading Pool Files. . ."));
         for (String Pool : Instance.getConfig().getStringList("Pools")) {
@@ -103,11 +125,9 @@ public class ConfigLoader {
                 if (section != null) {
                     String filename = Pool.replaceAll(".yml", "");
                     PoolList.add(filename);
-                    Pools.put(filename, config);
                     String id = config.getString("pool_id");
-                    pullsID.put(filename, id);
-                    PullsIdList.add(id);
-                    pullsItems.put(id, new ArrayList<>(section.getKeys(false)));
+                    poolsID.put(filename, id);
+                    poolsItems.put(id, new ArrayList<>(section.getKeys(false)));
                     HashMap<String, PoolStorage> storage = new HashMap<>();
                     for (String key : section.getKeys(false)) {
                         if (MMOItems.plugin.getItem(config.getString("list."+key+".Category", ""), config.getString("list."+key+".ID")) != null) {
@@ -122,11 +142,8 @@ public class ConfigLoader {
                             System.out.println(colorize("&cCould not find Item with Category "+config.getString("list."+key+".Category", "")+" And ID: "+config.getString("list."+key+".ID")));
                         }
                     }
-                    pullStorage.put(id, storage);
+                    poolStorage.put(id, storage);
                 }
-
-
-
 
                 System.out.println(colorize("&aLoaded Pool File: " + file.getName()));
             } else {
@@ -139,18 +156,13 @@ public class ConfigLoader {
             File file = new File(Instance.getDataFolder(), "Banners/"+Banner);
             System.out.println(colorize("&aLoaded Banner File: " + file.getName()));
             if (file.exists()) {
-                String filename = Banner.replaceAll(".yml", "");
                 YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
 
 
                 ConfigurationSection section = config.getConfigurationSection("rarities");
                 if (section != null) {
-                    BannerList.add(filename);
-                    Banners.put(filename, config);
-
                     String id = config.getString("banner_id");
                     BannerIdsList.add(id);
-                    bannerIDs.put(filename, id);
                     uprateEnable.put(id, config.getBoolean("uprate.enabled", false));
                     uprateMinRolls.put(id, config.getInt("uprate.minimum_roll", 90));
                     uprateAddtionalRate.put(id,  Double.valueOf(config.getDouble("uprate.additional_rate", 2D)).floatValue());

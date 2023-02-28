@@ -53,10 +53,11 @@ public class PlayerDataManager {
                         currentRolls.put(banner, rs.getInt("CurrentRolls"));
                     }
                 }
+                selectStatement.close();
             } catch (SQLException e) {
                 // Handle any errors that occur during the database operations
                 System.out.println(colorize("&4Cannot load Data from Player " + player.getName()));
-               Bukkit.getScheduler().runTask(CraftyCrates.getInstance(), () -> player.kickPlayer(colorize("&4Something went wrong! Please reconnect in a few seconds")));
+               player.kickPlayer(colorize("&4Something went wrong! Please reconnect in a few seconds"));
                 }
             // Loop through each banner ID
             for (String banner : ConfigLoader.getBannerIdsList()) {
@@ -64,26 +65,23 @@ public class PlayerDataManager {
                 if (!totalRolls.containsKey(banner) || !currentRolls.containsKey(banner)) {
                     // If the banner data is missing, insert a new entry in the database
                     String insertQuery = "INSERT INTO CraftyCrates_PlayerBannerData (UUID, BannerID, TotalRolls, CurrentRolls) VALUES (?, ?, 0, 0)";
-                    try (Connection conn = CraftyCrates.getConnection();
-                         PreparedStatement insertStatement = conn.prepareStatement(insertQuery)) {
+                    try {
+                        Connection conn = CraftyCrates.getConnection();
+                        PreparedStatement insertStatement = conn.prepareStatement(insertQuery);
                         // Set the placeholders for the player UUID and banner ID in the insert query
                         insertStatement.setString(1, uuid.toString());
                         insertStatement.setString(2, banner);
                         insertStatement.executeUpdate();
+                        insertStatement.close();
                     } catch (SQLException e) {
                         // Handle any errors that occur during the database operations
-                        System.out.println(colorize("&4Cannot load Data from Player " + player.getName()));
-                        synchronized (CraftyCrates.getInstance()) {
-                            player.kickPlayer(colorize("&4Something went wrong! Please reconnect in a few seconds"));
-                        }
+                        System.out.println(colorize("&4Cannot load Data from Player " + player.getName() + ":&c"+e));
+                        e.printStackTrace();
+                        player.kickPlayer(colorize("&4Something went wrong! Please reconnect in a few seconds"));
                         return;
                     }
                 }
             }
-    }
-
-    public int getCurrentRoll(String banner) {
-        return currentRolls.getOrDefault(banner, 0);
     }
 
     public int getTotalRoll(String banner) {
@@ -130,11 +128,13 @@ public class PlayerDataManager {
      */
     public void applyLogs(String banner, ItemStack stack) {
         Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
-            try (PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("INSERT INTO craftycrates_logs (UUID, BannerID, Data, Date) VALUES (?, ?, ?, NOW())")) {
+            try {
+                PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("INSERT INTO craftycrates_logs (UUID, BannerID, Data, Date) VALUES (?, ?, ?, NOW())") ;
                 ps.setString(1, player.getUniqueId().toString());
                 ps.setString(2, banner);
                 ps.setString(3, ItemSerialization.serializeItemStack(stack));
                 ps.executeUpdate();
+                ps.close();
             } catch (SQLException | IOException e) {
                 throw new RuntimeException(e);
             }

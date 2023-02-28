@@ -86,4 +86,17 @@ public class MySQL {
         });
     }
 
+    public void startSendDummyData() {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(CraftyCrates.getInstance(), () ->  {
+            System.out.println("Sending Dummy Data to prevent Database Timed out!");
+            try {
+                PreparedStatement statement = connection.prepareStatement("REPLACE INTO craftycrates_playerbannerdata (ID, UUID, BannerID, TotalRolls, CurrentRolls) VALUES (1, 'Dummy_Data', RAND(), 0, 0);");
+                statement.executeUpdate();
+                statement.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }, 20, 300*20);
+    }
+
 }

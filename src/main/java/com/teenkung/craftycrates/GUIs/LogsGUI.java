@@ -2,6 +2,7 @@ package com.teenkung.craftycrates.GUIs;
 
 import com.teenkung.craftycrates.ConfigLoader;
 import com.teenkung.craftycrates.CraftyCrates;
+import com.teenkung.craftycrates.events.JoinEvent;
 import com.teenkung.craftycrates.utils.Functions;
 import com.teenkung.craftycrates.utils.ItemSerialization;
 import org.bukkit.Bukkit;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import static com.teenkung.craftycrates.CraftyCrates.colorize;
 
@@ -87,23 +89,29 @@ public class LogsGUI {
                 PreparedStatement statement = CraftyCrates.getConnection().prepareStatement("SELECT * FROM craftycrates_logs WHERE UUID = ? AND BannerID = ? ORDER BY Date DESC LIMIT ?, ?");
                 statement.setString(1, player.getUniqueId().toString());
                 statement.setString(2, bannerID);
-                statement.setInt(3, start+1);
+                statement.setInt(3, start);
                 statement.setInt(4, end+1);
                 ResultSet rs = statement.executeQuery();
-                int count = 0;
+                ItemStack item;
+                ItemMeta meta;
+                ArrayList<String> lore;
+                int count = JoinEvent.getDataManager().get(player).getTotalRoll(bannerID);
                 while (rs.next()) {
-                    count++;
-                }
-                rs.beforeFirst();
-                while (rs.next()) {
-                    count--;
-                    ItemStack item = ItemSerialization.deserializeItemStack(rs.getString("Data"));
-                    ItemMeta meta = item.getItemMeta();
+                    item = ItemSerialization.deserializeItemStack(rs.getString("Data"));
+                    meta = item.getItemMeta();
                     if (meta != null) {
                         meta.setDisplayName(colorize("&e#" + count + " " + meta.getDisplayName()));
+                        lore = new ArrayList<>();
+                        if (meta.hasLore()) {
+                            lore.addAll(meta.getLore());
+                        }
+                        lore.add(colorize("&f "));
+                        lore.add(colorize("&fOpened Time: &e" + rs.getString("Date")));
+                        meta.setLore(lore);
                     }
                     item.setItemMeta(meta);
                     inv.addItem(item);
+                    count--;
                 }
                 statement.close();
             } catch (SQLException | IOException | ClassNotFoundException e) {
