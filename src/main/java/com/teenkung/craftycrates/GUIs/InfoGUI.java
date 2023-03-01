@@ -1,10 +1,9 @@
 package com.teenkung.craftycrates.GUIs;
 
 import com.teenkung.craftycrates.ConfigLoader;
-import com.teenkung.craftycrates.utils.Functions;
+import com.teenkung.craftycrates.utils.GUILoader;
 import de.tr7zw.nbtapi.NBTItem;
 import net.Indyuce.mmoitems.MMOItems;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -14,6 +13,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 import static com.teenkung.craftycrates.CraftyCrates.colorize;
 
@@ -27,20 +27,8 @@ public class InfoGUI {
             ArrayList<Inventory> infoList = new ArrayList<>();
             int page = 0;
             for (String pool : PoolList) {
-                Inventory inv = Bukkit.createInventory(null, 54, colorize("&dGacha info: "+ConfigLoader.getRarityStorage(bannerID, pool).display()));
+                Inventory inv = GUILoader.getInfoGUI(pool, bannerID, page);
                 page++;
-                for (int i = 0; i < 54 ; i++) {
-                    if (i < 9 || i > 45) {
-                        ItemStack bg = Functions.getInventoryItem(Material.BLACK_STAINED_GLASS_PANE, 1, "", null);
-                        NBTItem nbt = new NBTItem(bg);
-                        nbt.setInteger("page", page);
-                        nbt.setString("bannerID", bannerID);
-                        nbt.setString("Inv", "GachaInfo");
-                        inv.setItem(i, nbt.getItem());
-                    }
-                }
-                inv.setItem(53, Functions.getInventoryItem(Material.LIME_STAINED_GLASS_PANE, 1, "&aNext Page", null));
-                inv.setItem(45, Functions.getInventoryItem(Material.RED_STAINED_GLASS_PANE, 1, "&cPrevious Page", null));
 
                 String poolID = ConfigLoader.getPoolIDByFileName(ConfigLoader.getRarityStorage(bannerID, pool).pool());
                 int totalWeight = ConfigLoader.getTotalPoolWeight(poolID);
@@ -65,7 +53,16 @@ public class InfoGUI {
                             stack.setItemMeta(meta);
                         }
                     }
-                    inv.addItem(stack);
+                    for (int e : GUILoader.getInfoSlot()) {
+                        if (inv.getItem(e) == null) {
+                            inv.setItem(e, stack);
+                            break;
+                        } else if (Objects.requireNonNull(inv.getItem(e)).getType() == Material.AIR) {
+                            inv.setItem(e, stack);
+                            break;
+                        }
+
+                    }
                 }
                 infoList.add(inv);
             }
@@ -79,12 +76,12 @@ public class InfoGUI {
     }
 
     public static void goNextPage(Player player, String bannerID) {
-        ItemStack check = player.getOpenInventory().getTopInventory().getItem(0);
+        ItemStack check = player.getOpenInventory().getTopInventory().getItem(GUILoader.getInfoNextPageSlot().get(0));
         if (check != null) {
             NBTItem item = new NBTItem(check);
             if (item.getString("Inv").equals("GachaInfo")) {
-                if (item.getInteger("page") < guisList.get(bannerID).size()) {
-                    player.openInventory(guisList.get(bannerID).get(item.getInteger("page")));
+                if (item.getInteger("page") < guisList.get(bannerID).size()-1) {
+                    player.openInventory(guisList.get(bannerID).get(item.getInteger("page")+1));
                 } else {
                     player.openInventory(guisList.get(bannerID).get(0));
                 }
@@ -93,14 +90,14 @@ public class InfoGUI {
     }
 
     public static void goPreviousPage(Player player, String bannerID) {
-        ItemStack check = player.getOpenInventory().getTopInventory().getItem(0);
+        ItemStack check = player.getOpenInventory().getTopInventory().getItem(GUILoader.getInfoNextPageSlot().get(0));
         if (check != null) {
             NBTItem item = new NBTItem(check);
             if (item.getString("Inv").equals("GachaInfo")) {
-                if (item.getInteger("page") <= 1) {
+                if (item.getInteger("page") < 1) {
                     player.openInventory(guisList.get(bannerID).get(guisList.get(bannerID).size() - 1));
                 } else {
-                    player.openInventory(guisList.get(bannerID).get(item.getInteger("page") - 2));
+                    player.openInventory(guisList.get(bannerID).get(item.getInteger("page") - 1));
                 }
             }
         }

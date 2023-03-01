@@ -87,12 +87,16 @@ public class PlayerDataManager {
     public int getTotalRoll(String banner) {
         return totalRolls.getOrDefault(banner, 0);
     }
+    public int getCurrentRoll(String banner) {return currentRolls.getOrDefault(banner, 0);}
 
     public void setCurrentRoll(String banner, int currentRoll) {
         currentRolls.put(banner, currentRoll);
+    }
+
+    public void updateCurrentRoll(String banner) {
         Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
             try (PreparedStatement ps = CraftyCrates.getConnection().prepareStatement("UPDATE `craftycrates_playerbannerdata` SET `CurrentRolls` = ? WHERE `UUID` = ? AND `BannerID` = ?;")) {
-                ps.setInt(1, currentRoll);
+                ps.setInt(1, currentRolls.get(banner));
                 ps.setString(2, player.getUniqueId().toString());
                 ps.setString(3, banner);
                 ps.executeUpdate();
@@ -197,10 +201,11 @@ public class PlayerDataManager {
                     } else {
                         setCurrentRoll(banner, currentRoll);
                     }
-                    setTotalRoll(banner, totalRolls.getOrDefault(banner, 0) + 1);
                     applyLogs(banner, stack);
                 });
             }
+            setTotalRoll(banner, totalRolls.getOrDefault(banner, 0) + amount);
+            updateCurrentRoll(banner);
             future.complete(result);
         });
         return future;

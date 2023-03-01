@@ -16,4 +16,93 @@ MySQL:
   User: root
   Password: CraftyCrates
   Database: CraftyCrates
+  DummyData:
+    SendRate: 300
+    Display: true
 
+GUIs:
+  Info:
+    Title: "&dGacha Info: <display> &8| &2<banner>"
+    Layout:
+      - "BBBBBBBBB"
+      - ""
+      - ""
+      - ""
+      - ""
+      - "PBBBIBBBN"
+    Info-Slot: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 30, 31, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+    Next-Page-Slot: [53]
+    Previous-Page-Slot: [45]
+    #Avaiable placeholders:
+    # <banner>, <uprate_pool>, <uprate_minimum>, <uprate_enable>, <uprate_additional>
+    Items:
+      B:
+        Material: BLACK_STAINED_GLASS_PANE
+        Amount: 1
+        Display: "&f "
+        Lore: []
+        ModelData: 0
+      N:
+        Material: LIME_STAINED_GLASS_PANE
+        Amount: 1
+        Display: "&aNext Page"
+        Lore: [ ]
+        ModelData: 0
+      P:
+        Material: RED_STAINED_GLASS_PANE
+        Amount: 1
+        Display: "&cPrevious Page"
+        Lore: [ ]
+        ModelData: 0
+      I:
+        Material: NETHER_STAR
+        Amount: 1
+        Display: "&eGacha Info:"
+        Lore:
+          - "&fBanner: &b<banner>"
+          - "&fChance of this pool: &b<pool_chance>"
+          - "&fRate Increment at: &b<uprate_minimum>"
+          - "&fUprate pool: &b<uprate_pool>"
+
+  Logs:
+    Title: "&dGacha Logs: <banner>"
+    Layout:
+      - ""
+      - ""
+      - ""
+      - ""
+      - ""
+      - "PBBBIBBBN"
+    Logs-Slot: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]
+    Next-Page-Slot: [53]
+    Previous-Page-Slot: [45]
+    #Available placeholder:
+    # <banner>, <uprate_pool>, <uprate_minimum>, <uprate_enable>, <uprate_additional>, <current_rate>, <current_rolls>, <total_rolls>
+    Items:
+      B:
+        Material: BLACK_STAINED_GLASS_PANE
+        Amount: 1
+        Display: "&f "
+        Lore: []
+        ModelData: 0
+      N:
+        Material: LIME_STAINED_GLASS_PANE
+        Amount: 1
+        Display: "&aNext Page"
+        Lore: [ ]
+        ModelData: 0
+      P:
+        Material: RED_STAINED_GLASS_PANE
+        Amount: 1
+        Display: "&cPrevious Page"
+        Lore: [ ]
+        ModelData: 0
+      I:
+        Material: NETHER_STAR
+        Amount: 1
+        Display: "&eGacha Logs:"
+        Lore:
+          - "&fBanner: &b<banner>"
+          - "&fTotal Pulls: &b<total_rolls>"
+          - "&fCurrent Pulls: &b<current_rolls>"
+          - "&f"

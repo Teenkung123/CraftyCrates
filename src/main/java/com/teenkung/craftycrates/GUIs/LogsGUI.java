@@ -3,7 +3,7 @@ package com.teenkung.craftycrates.GUIs;
 import com.teenkung.craftycrates.ConfigLoader;
 import com.teenkung.craftycrates.CraftyCrates;
 import com.teenkung.craftycrates.events.JoinEvent;
-import com.teenkung.craftycrates.utils.Functions;
+import com.teenkung.craftycrates.utils.GUILoader;
 import com.teenkung.craftycrates.utils.ItemSerialization;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -17,27 +17,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import static com.teenkung.craftycrates.CraftyCrates.colorize;
 
 public class LogsGUI {
 
     private final Player player;
-    private final Inventory inv;
+    private Inventory inv;
     private Integer page;
     private String bannerID;
     public LogsGUI(Player player) {
         this.player = player;
-        inv = Bukkit.createInventory(null, 54, colorize("&5Pull Logs"));
-        for (int i = 0 ; i < 9 ; i++) {
-            if (i == 0) {
-                inv.setItem(i, Functions.getInventoryItem(Material.RED_STAINED_GLASS_PANE, 1, "&cPrevious Page", null));
-            } else if (i == 8) {
-                inv.setItem(i, Functions.getInventoryItem(Material.LIME_STAINED_GLASS_PANE, 1, "&aNext Page", null));
-            } else {
-                inv.setItem(i, Functions.getInventoryItem(Material.BLACK_STAINED_GLASS_PANE, 1, "&f", null));
-            }
-        }
     }
 
     public void setPage(int page) {
@@ -59,6 +50,9 @@ public class LogsGUI {
     public void goPreviousPage() {
         if (page > 1) {
             setPage(page-1);
+            loadData();
+        } else {
+            setPage(Double.valueOf(Math.ceil(JoinEvent.getDataManager().get(player).getTotalRoll(bannerID) / 45D)).intValue());
             loadData();
         }
     }
@@ -110,10 +104,21 @@ public class LogsGUI {
                         meta.setLore(lore);
                     }
                     item.setItemMeta(meta);
-                    inv.addItem(item);
+
+                    for (int e : GUILoader.getLogsSlot()) {
+                        if (inv.getItem(e) == null) {
+                            inv.setItem(e, item);
+                            break;
+                        } else if (Objects.requireNonNull(inv.getItem(e)).getType() == Material.AIR) {
+                            inv.setItem(e, item);
+                            break;
+                        }
+
+                    }
                     count--;
                 }
                 statement.close();
+                Bukkit.getScheduler().runTask(CraftyCrates.getInstance(), () -> player.openInventory(inv));
             } catch (SQLException | IOException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -121,9 +126,7 @@ public class LogsGUI {
     }
 
     private void resetGUI() {
-        for (int i = 9 ; i < 54 ; i++) {
-            inv.setItem(i, null);
-        }
+        inv = GUILoader.getLogsGUI(bannerID, player);
     }
 
     public void openInventory() {
@@ -133,7 +136,6 @@ public class LogsGUI {
             bannerID = ConfigLoader.getBannerIdsList().get(1);
         }
         loadData();
-        player.openInventory(inv);
     }
 
 }

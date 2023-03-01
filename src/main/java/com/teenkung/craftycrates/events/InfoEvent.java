@@ -1,6 +1,7 @@
 package com.teenkung.craftycrates.events;
 
 import com.teenkung.craftycrates.GUIs.InfoGUI;
+import com.teenkung.craftycrates.utils.GUILoader;
 import de.tr7zw.nbtapi.NBTItem;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,16 +18,16 @@ public class InfoEvent implements Listener {
         if (clickedInventory == null) {
             return;
         }
-        ItemStack check = clickedInventory.getItem(0);
+        ItemStack check = clickedInventory.getItem(GUILoader.getInfoNextPageSlot().get(0));
         if (check == null) {
             return;
         }
         NBTItem nbt = new NBTItem(check);
         if (nbt.getString("Inv").equals("GachaInfo")) {
             event.setCancelled(true);
-            if (event.getSlot() == 45) {
+            if (GUILoader.getInfoPreviousPageSlot().contains(event.getSlot())) {
                 InfoGUI.goPreviousPage((Player) event.getWhoClicked(), nbt.getString("bannerID"));
-            } else if (event.getSlot() == 53) {
+            } else if (GUILoader.getInfoNextPageSlot().contains(event.getSlot())) {
                 InfoGUI.goNextPage((Player) event.getWhoClicked(), nbt.getString("bannerID"));
             }
         }

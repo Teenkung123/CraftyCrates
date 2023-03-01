@@ -88,7 +88,9 @@ public class MySQL {
 
     public void startSendDummyData() {
         Bukkit.getScheduler().runTaskTimerAsynchronously(CraftyCrates.getInstance(), () ->  {
-            System.out.println("Sending Dummy Data to prevent Database Timed out!");
+            if (CraftyCrates.getInstance().getConfig().getBoolean("MySQL.DummyData.Display")) {
+                System.out.println("Sending Dummy Data to prevent Database Timed out!");
+            }
             try {
                 PreparedStatement statement = connection.prepareStatement("REPLACE INTO craftycrates_playerbannerdata (ID, UUID, BannerID, TotalRolls, CurrentRolls) VALUES (1, 'Dummy_Data', RAND(), 0, 0);");
                 statement.executeUpdate();
@@ -96,7 +98,7 @@ public class MySQL {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-        }, 20, 300*20);
+        }, 20, CraftyCrates.getInstance().getConfig().getInt("MySQL.DummyData.SendRate", 300)* 20L);
     }
 
 }
