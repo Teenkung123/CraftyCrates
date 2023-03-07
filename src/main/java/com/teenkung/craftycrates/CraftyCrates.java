@@ -14,6 +14,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public final class CraftyCrates extends JavaPlugin {
@@ -29,12 +31,12 @@ public final class CraftyCrates extends JavaPlugin {
         Objects.requireNonNull(getCommand("craftycrates")).setTabCompleter(new CommandTabComplete());
 
         Bukkit.getScheduler().runTaskAsynchronously(CraftyCrates.getInstance(), () -> {
-            System.out.println(colorize("&eConnecting to MySQL Server. . ."));
+            System.out.println(colorize(getConfig().getString("Languages.MySQL.connecting")));
             database = new MySQL();
             try {
                 database.Connect();
                 connection = database.getConnection();
-                System.out.println(colorize("&aConnected to MySQL Server!"));
+                System.out.println(colorize(getConfig().getString("Languages.MySQL.connected")));
 
                 Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
                     database.createTable();
@@ -48,21 +50,21 @@ public final class CraftyCrates extends JavaPlugin {
                     });
                 }, 20);
             } catch (SQLException e) {
-                System.out.println(colorize("&4Could not connect to MySQL server. Please check your configuration settings.\nError: " + e));
-                System.out.println(colorize("&4Disabling Plugin. . ."));
+                System.out.println(colorize(getConfig().getString("Languages.MySQL.unable")));
+                e.printStackTrace();
                 Bukkit.getPluginManager().disablePlugin(this);
             }
         });
 
         InfoGUI.loadGUIs();
 
-        System.out.println(colorize("&eRegistering Plugin Event Handlers. . ."));
+        System.out.println(colorize(getConfig().getString("Languages.others.register-event-handler")));
         Bukkit.getPluginManager().registerEvents(new JoinEvent(), this);
         Bukkit.getPluginManager().registerEvents(new QuitEvent(), this);
         Bukkit.getPluginManager().registerEvents(new NEIEvent(), this);
         Bukkit.getPluginManager().registerEvents(new InfoEvent(), this);
         Bukkit.getPluginManager().registerEvents(new LogsEvent(), this);
-        System.out.println(colorize("&aSuccessfully Registered all Event Handlers!"));
+        System.out.println(colorize(getConfig().getString("Languages.others.success-event-handler")));
     }
 
     @Override
@@ -77,5 +79,13 @@ public final class CraftyCrates extends JavaPlugin {
 
     public static String colorize(String string) {
         return IridiumColorAPI.process(string);
+    }
+
+    public static ArrayList<String> colorizeList(List<String> list) {
+        ArrayList<String> result = new ArrayList<>();
+        for (String s : list) {
+            result.add(colorize(s));
+        }
+        return result;
     }
 }

@@ -4,6 +4,7 @@ import com.teenkung.craftycrates.utils.record.PoolStorage;
 import com.teenkung.craftycrates.utils.record.RarityStorage;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -116,7 +117,9 @@ public class ConfigLoader {
         Instance.saveDefaultConfig();
         Instance.reloadConfig();
 
-        System.out.println(colorize("&eLoading Pool Files. . ."));
+        FileConfiguration Mconfig = Instance.getConfig();
+
+        System.out.println(colorize(Mconfig.getString("Languages.pool-file.loading")));
         for (String Pool : Instance.getConfig().getStringList("Pools")) {
             File file = new File(Instance.getDataFolder(), "Pools/"+Pool);
             if (file.exists()) {
@@ -139,22 +142,23 @@ public class ConfigLoader {
                                     config.getInt("list."+key+".Weight")
                             ));
                         } else {
-                            System.out.println(colorize("&cCould not find Item with Category "+config.getString("list."+key+".Category", "")+" And ID: "+config.getString("list."+key+".ID")));
+                            String category = config.getString("list."+key+".Category", "");
+                            String ids = config.getString("list."+key+".ID", "");
+                            System.out.println(colorize(Mconfig.getString("Languages.pool-file.item-not-found", "").replaceAll("<type>", category).replaceAll("<id>", ids)));
                         }
                     }
                     poolStorage.put(id, storage);
                 }
 
-                System.out.println(colorize("&aLoaded Pool File: " + file.getName()));
+                System.out.println(colorize(Mconfig.getString("Languages.pool-file.loaded", "").replaceAll("<file>", file.getName())));
             } else {
-                System.out.println(colorize("&cUnable to load Pool File: " + file.getName() + " &c(File not found)"));
+                System.out.println(colorize(Mconfig.getString("Languages.pool-file.not-found", "").replaceAll("<file>", file.getName())));
             }
         }
 
-        System.out.println(colorize("&eLoading Banner Files. . ."));
+        System.out.println(colorize(Mconfig.getString("Languages.banner-file.loading")));
         for (String Banner : Instance.getConfig().getStringList("Banners")) {
             File file = new File(Instance.getDataFolder(), "Banners/"+Banner);
-            System.out.println(colorize("&aLoaded Banner File: " + file.getName()));
             if (file.exists()) {
                 YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
 
@@ -179,18 +183,18 @@ public class ConfigLoader {
                                     config.getString("rarities."+key+".pool", "").replaceAll(".yml", "")
                             ));
                         } else {
-                            System.out.println(colorize("&6Could not find pool named " + config.getString("rarities."+key+".pool")));
+                            System.out.println(colorize(Mconfig.getString("Languages.banner-file.not-found", "").replaceAll("<file>", file.getName())));
                         }
                     }
                     rarityStorage.put(id, storage);
                     rarities.put(id, l);
-
+                    System.out.println(colorize(Mconfig.getString("Languages.banner-file.loaded", "").replaceAll("<file>", file.getName())));
                 } else {
-                    System.out.println(colorize("&cUnable to load Banner File: " + file.getName() + "&c(Invalid rarities node)"));
+                    System.out.println(colorize(Mconfig.getString("Languages.banner-file.invalid", "").replaceAll("<file>", file.getName())));
                 }
 
             } else {
-                System.out.println(colorize("&cUnable to load Banner File: " + file.getName() + " &c(File not found)"));
+                System.out.println(colorize(Mconfig.getString("Languages.banner-file.not-found", "").replaceAll("<file>", file.getName())));
             }
         }
 

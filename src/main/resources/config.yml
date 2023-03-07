@@ -106,3 +106,53 @@ GUIs:
           - "&fTotal Pulls: &b<total_rolls>"
           - "&fCurrent Pulls: &b<current_rolls>"
           - "&f"
+
+Languages:
+  commands:
+    open:
+      invalid-argument: "&cInvalid Arguments! Please use /craftycrates open <bannerID> <amount>"
+      unknown-id: "&cInvalid Banner ID, please check your arguments! (case sensitive)"
+    info:
+      invalid-argument: "&cInvalid Arguments! Please use /craftycrates info <bannerID"
+      unknown-id: "&cInvalid Banner ID, please check your arguments! (case sensitive)"
+    logs:
+      invalid-argument: "&cInvalid Arguments! Please use /craftycrates logs <bannerID>"
+      unknown-id: "&cInvalid Banner ID, please check your arguments! (case sensitive)"
+    reload:
+      reloading: "&6Reloading Configuration. . ."
+      reloaded: "&aReloaded Configuration! &e(<time>ms)"
+    help:
+      - "&6CraftyCrates Help command:"
+      - "   &6/cc open <BannerID> <amount> &f- Open the Gacha with specific amount"
+      - "   &6/cc info <BannerID> &f- Get info of specific Banner"
+      - "   &6/cc logs <BannerID> &f- Get Your logs of specific Banner"
+      - "   &6/cc reload &f- Reload the configuration"
+      - "   &6/cc help &f- Open this menu"
+    no-permission: "&cSorry but you are not allowed to use this command!"
+
+  pool-file:
+    loading: "&eLoading Pool Files. . ."
+    loaded: "&aLoaded Pool File: <file>"
+    not-found: "&cUnable to load Pool File: <file> (File not found)"
+    item-not-found: "&cCould not find MMOItem with Type: <type> and ID: <id>! Please check your configuration!"
+
+  banner-file:
+    loading: "&eLoading Banner Files . . ."
+    loaded: "&aLoaded Banner File: <file>"
+    pool-not-found: "&cUnable to load Banner File: <file> (Pool file not found)"
+    not-found: "&cUnable to load Banner File: <file> (File not found)"
+    invalid: "&cUnable to load Banner File: <file> (Invalid Rarities node)"
+
+  MySQL:
+    connecting: "&eConnecting to MySQL Server. . ."
+    connected: "&aConnected to MySQL Server!"
+    unable: "&cUnable to connect to MySQL Server. Please check your configuration, Disabling Plugin"
+    dummy-data: "Sending Dummy Data to prevent MySQL Server Timed out!"
+    check-table: "&dChecking MySQL Tables. . ."
+    loaded: "&aSuccessfully Loaded MySQL Table: <table>"
+    unable-load: "&cUnable to load MySQL Table: <table>"
+
+  others:
+    register-event-handler: "&eRegistering Plugin Event Handlers. . ."
+    success-event-handler: "&aSuccessfully Registered all Event Handlers!"
+

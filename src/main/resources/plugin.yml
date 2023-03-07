@@ -12,3 +12,24 @@ commands:
     aliases: cc
     permission: craftycrates.use
     permission-message: "You do not have permission to execute this command."
+
+permissions:
+  craftycrates.admin:
+    default: op
+    children:
+      - craftycrats.open
+      - craftycrats.info
+      - craftycrats.logs
+      - craftycrats.reload
+      - craftycrats.help
+
+  craftycrates.open:
+    description: Permission for opening the Gacha
+  craftycrates.info:
+    description: Permission for opening Info GUI
+  craftycrates.logs:
+    description: Permission for opening Log GUI
+  craftycrates.reload:
+    description: Permission for reloading configuration
+  craftycrates.help:
+    description: Permission for opening help Chat

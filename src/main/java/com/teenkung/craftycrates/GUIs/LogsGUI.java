@@ -89,7 +89,7 @@ public class LogsGUI {
                 ItemStack item;
                 ItemMeta meta;
                 ArrayList<String> lore;
-                int count = JoinEvent.getDataManager().get(player).getTotalRoll(bannerID);
+                int count = JoinEvent.getDataManager().get(player).getTotalRoll(bannerID) - (page-1)*45;
                 while (rs.next()) {
                     item = ItemSerialization.deserializeItemStack(rs.getString("Data"));
                     meta = item.getItemMeta();

@@ -39,7 +39,7 @@ public class MySQL {
     }
 
     public void createTable() {
-        System.out.println(colorize("&dChecking MySQL tables..."));
+        System.out.println(colorize(CraftyCrates.getInstance().getConfig().getString("Languages.MySQL.check-table")));
         createBannerPlayerDataTable();
         createLogsTable();
     }
@@ -58,9 +58,10 @@ public class MySQL {
                         + ") "
                         + "COLLATE='utf8_general_ci';");
                 statement.close();
-                System.out.println(colorize("&aSuccessfully Loaded PlayerBannerData Table!"));
+                System.out.println(colorize(CraftyCrates.getInstance().getConfig().getString("Languages.MySQL.loaded", "").replaceAll("<table>", "PlayerBannerData")));
             } catch (SQLException e) {
-                System.out.println(colorize("&4Unable to create Table PlayerBannerData: " + e));
+                System.out.println(colorize(CraftyCrates.getInstance().getConfig().getString("Languages.MySQL.unable-load", "").replaceAll("<table>", "PlayerBannerData")));
+                e.printStackTrace();
             }
         });
     }
@@ -79,9 +80,10 @@ public class MySQL {
                     ") " +
                     "COLLATE='utf8_general_ci';");
             statement.close();
-            System.out.println(colorize("&aSuccessfully Loaded Logs Table!"));
+            System.out.println(colorize(CraftyCrates.getInstance().getConfig().getString("Languages.MySQL.loaded", "").replaceAll("<table>", "Logs")));
         } catch (SQLException e) {
-            System.out.println(colorize("&4Unable to create Table Logs: " + e));
+            System.out.println(colorize(CraftyCrates.getInstance().getConfig().getString("Languages.MySQL.unable-load", "").replaceAll("<table>", "Logs")));
+            e.printStackTrace();
         }
         });
     }
