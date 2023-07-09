@@ -6,6 +6,18 @@ uprate:
   additional_rate: 2
   uprate_pool: S6
 
+key:
+  type: ItemsAdder #MMOItems, ItemsAdder
+  category: #MMOItems Item ID
+  id: #ItemsAdderID / MMOItems Item ID / Minecraft ItemID
+
+  #Minecraft
+  name: ''
+  lore: []
+  modelData: 0
+
+  amount: 1
+
 rarities:
   S6:
     display: '&6???????'

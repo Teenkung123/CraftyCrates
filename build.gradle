@@ -30,6 +30,9 @@ repositories {
         name = 'iridiumdevelopment'
         url = 'https://nexus.iridiumdevelopment.net/repository/maven-releases/'
     }
+    maven {
+        url 'https://jitpack.io'
+    }
 }
 
 dependencies {
@@ -39,6 +42,7 @@ dependencies {
     compileOnly("de.tr7zw:item-nbt-api-plugin:2.11.1")
     compileOnly 'me.clip:placeholderapi:2.11.2'
     implementation 'com.iridium:IridiumColorAPI:1.0.6'
+    compileOnly 'com.github.LoneDev6:API-ItemsAdder:3.5.0b'
 
     compileOnly fileTree('libs')
 }

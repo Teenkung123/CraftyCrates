@@ -2,6 +2,7 @@ package com.teenkung.craftycrates;
 
 import com.teenkung.craftycrates.utils.record.PoolStorage;
 import com.teenkung.craftycrates.utils.record.RarityStorage;
+import dev.lone.itemsadder.api.CustomStack;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -21,7 +22,7 @@ public class ConfigLoader {
     private static final ArrayList<String> BannerIdsList = new ArrayList<>();
     private static final HashMap<String, Boolean> uprateEnable = new HashMap<>();
     private static final HashMap<String, Integer> uprateMinRolls = new HashMap<>();
-    private static final HashMap<String, Float> uprateAddtionalRate = new HashMap<>();
+    private static final HashMap<String, Float> uprateAdditionalRate = new HashMap<>();
     private static final HashMap<String, String> upratePool = new HashMap<>();
     private static final HashMap<String, ArrayList<String>> rarities = new HashMap<>();
     private static final HashMap<String, HashMap<String, RarityStorage>> rarityStorage = new HashMap<>();
@@ -35,13 +36,16 @@ public class ConfigLoader {
 
     //================================================================================================================================
 
+    /**
+     * Reload the configuration Files
+     */
     public static void reloadConfig() {
         PoolList.clear();
 
         BannerIdsList.clear();
         uprateEnable.clear();
         uprateMinRolls.clear();
-        uprateAddtionalRate.clear();
+        uprateAdditionalRate.clear();
         upratePool.clear();
         rarities.clear();
         rarityStorage.clear();
@@ -53,6 +57,11 @@ public class ConfigLoader {
         loadConfig();
     }
 
+    /**
+     * get a hashMap of PullID and float value of that pull id's chance
+     * @param ID Banner ID
+     * @return HashMap with key is PullID and value is Chance
+     */
     public static HashMap<String, Float> getBannerChance(String ID) {
         HashMap<String, RarityStorage> storage = rarityStorage.getOrDefault(ID, new HashMap<>());
         HashMap<String, Float> result = new HashMap<>();
@@ -62,6 +71,12 @@ public class ConfigLoader {
         return result;
     }
 
+    /**
+     * Get Rarity Storage of certain PullID
+     * @param BannerID BannerID
+     * @param PoolId PullID
+     * @return RarityStorage Class of that PullID
+     */
     public static RarityStorage getRarityStorage(String BannerID, String PoolId) {
         return rarityStorage.getOrDefault(BannerID, new HashMap<>()).getOrDefault(PoolId, new RarityStorage("", 0F, ""));
     }
@@ -89,7 +104,7 @@ public class ConfigLoader {
     }
 
     public static Float getUprateAdditionalRate(String banner) {
-        return uprateAddtionalRate.getOrDefault(banner, 0F);
+        return uprateAdditionalRate.getOrDefault(banner, 0F);
     }
     public static Integer getUprateMinimumRoll(String banner) {
         return uprateMinRolls.getOrDefault(banner, 1000000);
@@ -133,19 +148,32 @@ public class ConfigLoader {
                     poolsItems.put(id, new ArrayList<>(section.getKeys(false)));
                     HashMap<String, PoolStorage> storage = new HashMap<>();
                     for (String key : section.getKeys(false)) {
-                        if (MMOItems.plugin.getItem(config.getString("list."+key+".Category", ""), config.getString("list."+key+".ID")) != null) {
+                        if (MMOItems.plugin.getItem(config.getString("list." + key + ".Category", ""), config.getString("list." + key + ".ID")) != null) {
                             storage.put(key, new PoolStorage(
-                                    config.getString("list."+key+".Category", ""),
-                                    config.getString("list."+key+".ID"),
-                                    config.getInt("list."+key+".Amount"),
-                                    new ArrayList<>(config.getStringList("list."+key+".Command")),
-                                    config.getInt("list."+key+".Weight")
+                                    config.getString("list." + key + ".Category", ""),
+                                    config.getString("list." + key + ".ID"),
+                                    config.getInt("list." + key + ".Amount"),
+                                    new ArrayList<>(config.getStringList("list." + key + ".Command")),
+                                    config.getInt("list." + key + ".Weight")
                             ));
                         } else {
-                            String category = config.getString("list."+key+".Category", "");
-                            String ids = config.getString("list."+key+".ID", "");
-                            System.out.println(colorize(Mconfig.getString("Languages.pool-file.item-not-found", "").replaceAll("<type>", category).replaceAll("<id>", ids)));
+
+                            if (CustomStack.isInRegistry(section.getString(key + ".ID", ""))) {
+                                storage.put(key, new PoolStorage(
+                                        "ItemsAdder",
+                                        config.getString("list." + key + ".ID"),
+                                        config.getInt("list." + key + ".Amount"),
+                                        new ArrayList<>(config.getStringList("list." + key + ".Command")),
+                                        config.getInt("list." + key + ".Weight")
+                                ));
+                            } else {
+                                String category = config.getString("list." + key + ".Category", "");
+                                String ids = config.getString("list." + key + ".ID", "");
+                                System.out.println(colorize(Mconfig.getString("Languages.pool-file.item-not-found", "").replaceAll("<type>", category).replaceAll("<id>", ids)));
+                            }
+
                         }
+
                     }
                     poolStorage.put(id, storage);
                 }
@@ -169,7 +197,7 @@ public class ConfigLoader {
                     BannerIdsList.add(id);
                     uprateEnable.put(id, config.getBoolean("uprate.enabled", false));
                     uprateMinRolls.put(id, config.getInt("uprate.minimum_roll", 90));
-                    uprateAddtionalRate.put(id,  Double.valueOf(config.getDouble("uprate.additional_rate", 2D)).floatValue());
+                    uprateAdditionalRate.put(id,  Double.valueOf(config.getDouble("uprate.additional_rate", 2D)).floatValue());
                     upratePool.put(id, config.getString("uprate.uprate_pool", ""));
 
                     ArrayList<String> l = new ArrayList<>();

@@ -7,6 +7,7 @@ import com.teenkung.craftycrates.utils.ItemSerialization;
 import com.teenkung.craftycrates.utils.record.ItemPair;
 import com.teenkung.craftycrates.utils.selector.ChanceRandomSelector;
 import com.teenkung.craftycrates.utils.selector.WeightedRandomSelector;
+import dev.lone.itemsadder.api.CustomStack;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -190,7 +191,12 @@ public class PlayerDataManager {
                 String itemID = ConfigLoader.getPoolStorage(poolID, selectedPoolID).id();
 
                 Bukkit.getScheduler().runTask(CraftyCrates.getInstance(), () -> {
-                    ItemStack stack = MMOItems.plugin.getItem(itemCategory, itemID);
+                    ItemStack stack;
+                    if (itemCategory.equalsIgnoreCase("ItemsAdder")) {
+                        stack = CustomStack.getInstance(itemID).getItemStack();
+                    } else {
+                        stack = MMOItems.plugin.getItem(itemCategory, itemID);
+                    }
                     ItemPair pair = new ItemPair(stack, ConfigLoader.getPoolStorage(selectedID, selectedPoolID).commands());
                     result.add(pair);
 
